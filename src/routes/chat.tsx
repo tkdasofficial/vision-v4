@@ -1,4 +1,4 @@
-import { createFileRoute, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import Page from "@/pages/chat";
 import { Protected } from "@/components/protected";
 
@@ -12,5 +12,11 @@ export const Route = createFileRoute("/chat")({
 function ChatLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isIncognito = pathname.replace(/\/$/, "") === "/chat/incognito";
-  return <Protected><Page isIncognito={isIncognito} /></Protected>;
+  return (
+    <Protected>
+      <Page isIncognito={isIncognito} />
+      {/* Child routes render nothing visible; a failed child page file retries here without touching the chat. */}
+      <div hidden><Outlet /></div>
+    </Protected>
+  );
 }
