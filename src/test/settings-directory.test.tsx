@@ -14,7 +14,7 @@ describe("Settings directory", () => {
     const historyLength = vi.spyOn(window.history, "length", "get").mockReturnValue(5);
     try {
       render(<SettingsDirectory />);
-      fireEvent.click(screen.getByRole("button", { name: "Back", exact: true }));
+      fireEvent.click(screen.getByRole("button", { name: /^Back$/ }));
       expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/drawer");
     } finally {
       historyLength.mockRestore();
@@ -22,7 +22,7 @@ describe("Settings directory", () => {
   });
   it.each([...SETTINGS_CATEGORIES.map(({ title }) => title), "Reset password"])("returns %s to main Settings regardless of browser history", (title) => {
     render(<SettingsPage title={title}><p>Content</p></SettingsPage>);
-    fireEvent.click(screen.getByRole("button", { name: "Back", exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: /^Back$/ }));
     expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/settings");
   });
   it("preserves every category and account, upgrade, help and legal destinations", () => {
