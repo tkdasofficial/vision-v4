@@ -87,9 +87,9 @@ export default function Projects() {
       })}
     </div>}
     {active && <section className="mt-8 border-t border-border pt-6"><h2 className="mb-4 font-display text-lg font-semibold text-foreground">{active.name}</h2>
-      {projectChats.length === 0 ? <p className="mb-4 text-sm text-muted-foreground">No chats in this project yet</p> : projectChats.map((chat) => <Button key={chat.id} variant="outline" className="mb-2 w-full justify-start" onClick={() => navigate(`/chat/${chat.id}`)}>{chat.title}</Button>)}
+      {projectChats.length === 0 ? <p className="mb-4 text-sm text-muted-foreground">No chats in this project yet</p> : projectChats.map((chat) => <Button key={chat.id} variant="floating" className="mb-2 h-auto min-h-11 w-full justify-start whitespace-normal text-left" onClick={() => navigate(`/chat/${chat.id}`)}>{chat.title}</Button>)}
       <h3 className="my-4 text-sm text-muted-foreground">Add a chat</h3>
-      {otherChats.length === 0 ? <p className="text-sm text-muted-foreground">No other chats</p> : otherChats.map((chat) => <Button key={chat.id} variant="ghost" className="mb-1 w-full justify-start" onClick={() => void attach(chat.id)}>{chat.title}</Button>)}
+      {otherChats.length === 0 ? <p className="text-sm text-muted-foreground">No other chats</p> : otherChats.map((chat) => <Button key={chat.id} variant="floating" className="mb-1 h-auto min-h-11 w-full justify-start whitespace-normal text-left" onClick={() => void attach(chat.id)}>{chat.title}</Button>)}
     </section>}
   </FloatingWorkspacePage>;
 }

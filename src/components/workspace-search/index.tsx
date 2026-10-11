@@ -19,6 +19,7 @@ export default function WorkspaceSearch({ library = false, topSearch = false, on
   const { user } = useAuth();
   const { history } = useChatHistory();
   const [query, setQuery] = useState("");
+  const [librarySearching, setLibrarySearching] = useState(false);
   const [category, setCategory] = useState<SearchCategory | "all">("all");
   const [assetType, setAssetType] = useState<AssetType | "all">("all");
   const [items, setItems] = useState<SearchItem[]>([]);
@@ -69,12 +70,16 @@ export default function WorkspaceSearch({ library = false, topSearch = false, on
   return (
     <div className={topSearch ? "relative grid min-h-0 flex-1 grid-cols-1 grid-rows-1" : "flex min-h-0 flex-1 flex-col"}>
         <div className={topSearch ? "drawer-top relative z-10 col-start-1 row-start-1 self-start pb-5 pt-[max(12px,env(safe-area-inset-top))]" : "shrink-0"}>
-          {topSearch && <header className="px-4 sm:px-8">
+          {topSearch && library && !librarySearching ? <header className="px-4 sm:px-8"><div className="mx-auto grid h-11 max-w-4xl grid-cols-[1fr_auto_1fr] items-center gap-2">
+            <Button variant="floating" size="icon" className="size-11 justify-self-start rounded-full" aria-label="Back to drawer" onClick={onBack}><ArrowLeft /></Button>
+            <h1 className="drawer-floating flex h-11 items-center rounded-full px-6 font-display text-lg font-semibold">Library</h1>
+            <Button variant="floating" size="icon" className="size-11 justify-self-end rounded-full" aria-label="Search library" title="Search library" onClick={() => setLibrarySearching(true)}><SearchIcon /></Button>
+          </div></header> : topSearch && <header className="px-4 sm:px-8">
             <div className="mx-auto flex max-w-4xl items-center gap-3">
-              <Button variant="floating" size="icon" className="size-11 shrink-0" aria-label="Back to drawer" title="Back to drawer" onClick={onBack}><ArrowLeft /></Button>
+              <Button variant="floating" size="icon" className="size-11 shrink-0" aria-label={library ? "Back to Library" : "Back to drawer"} title="Back" onClick={() => { if (library) { setLibrarySearching(false); setQuery(""); } else onBack?.(); }}><ArrowLeft /></Button>
               <div className="relative min-w-0 flex-1">
                 <SearchIcon className="pointer-events-none absolute left-4 top-1/2 z-10 size-5 -translate-y-1/2 text-muted-foreground" />
-                <input autoFocus type="search" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search anything" placeholder="Search anything" className="drawer-floating h-11 w-full appearance-none rounded-full pl-12 pr-11 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:hidden" />
+                <input autoFocus type="search" value={query} onChange={(event) => setQuery(event.target.value)} aria-label={library ? "Search library" : "Search anything"} placeholder={library ? "Search library" : "Search anything"} className="drawer-floating h-11 w-full appearance-none rounded-full pl-12 pr-11 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:hidden" />
                 {query && <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 size-8 -translate-y-1/2" aria-label="Clear search" title="Clear search" onClick={() => setQuery("")}><X className="size-4" /></Button>}
               </div>
             </div>
@@ -97,7 +102,7 @@ export default function WorkspaceSearch({ library = false, topSearch = false, on
               if (!group.length) return null;
               if (library) return <div key={entry.value} className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{group.map((item) => {
                 const card = <><p className="line-clamp-2 break-all text-base font-medium text-foreground">{item.title}</p><entry.icon className="size-6 text-primary" /></>;
-                const cls = "flex aspect-square flex-col justify-between rounded-lg border border-border bg-secondary p-4 text-left transition-colors hover:bg-accent";
+                const cls = "drawer-floating flex aspect-square flex-col justify-between rounded-lg p-4 text-left transition-colors hover:bg-accent";
                 return item.sessionId ? <Link key={item.id} to="/chat/$chatId" params={{ chatId: item.sessionId }} onClick={onNavigate} className={cls}>{card}</Link> : <div key={item.id} className={cls}>{card}</div>;
               })}</div>;
               return <section key={entry.value} className="mb-8">
