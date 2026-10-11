@@ -1,5 +1,4 @@
 import { type LucideIcon } from "lucide-react";
-import type { AgentPlan } from "./agent-executor";
 
 export type SamplePrompt = { icon: LucideIcon; label: string; prompt: string };
 
