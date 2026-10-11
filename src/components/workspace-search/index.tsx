@@ -73,7 +73,7 @@ export default function WorkspaceSearch({ library = false, topSearch = false, on
             <div className="mx-auto flex max-w-4xl items-center gap-3">
               <Button variant="floating" size="icon" className="size-11 shrink-0" aria-label="Back to drawer" title="Back to drawer" onClick={onBack}><ArrowLeft /></Button>
               <div className="relative min-w-0 flex-1">
-                <SearchIcon className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                <SearchIcon className="pointer-events-none absolute left-4 top-1/2 z-10 size-5 -translate-y-1/2 text-muted-foreground" />
                 <input autoFocus type="search" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search anything" placeholder="Search anything" className="drawer-floating h-11 w-full appearance-none rounded-full pl-12 pr-11 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:hidden" />
                 {query && <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 size-8 -translate-y-1/2" aria-label="Clear search" title="Clear search" onClick={() => setQuery("")}><X className="size-4" /></Button>}
               </div>
