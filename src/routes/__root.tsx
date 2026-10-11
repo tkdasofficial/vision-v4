@@ -17,7 +17,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { RouteGuard } from "@/components/route-guard";
 import { ChatHistoryProvider } from "@/context/ChatHistoryContext";
 import appCss from "../styles.css?url";
-import { CHUNK_ERROR_RE, recoverFromChunkError } from "@/lib/chunk-recovery";
+import { isChunkError, nextSoftRetryDelay, recoverFromChunkError } from "@/lib/chunk-recovery";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -43,13 +43,32 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
-  console.error(error);
   const router = useRouter();
+  const chunk = isChunkError(error);
+  const [retrying, setRetrying] = useState(chunk);
   useEffect(() => {
-    // Old page files after a new version went live: reload once to get the new ones.
-    if (CHUNK_ERROR_RE.test(String((error as any)?.message)) && recoverFromChunkError()) return;
+    if (chunk) {
+      // A page file didn't download: try again in place first, so nothing on screen is lost.
+      const delay = nextSoftRetryDelay();
+      if (delay !== null) {
+        setRetrying(true);
+        const t = window.setTimeout(() => { router.invalidate(); reset(); }, delay);
+        return () => window.clearTimeout(t);
+      }
+      if (recoverFromChunkError()) return; // published site: one reload to pick up the new version
+    }
+    setRetrying(false);
+    console.error(error);
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
+  }, [error, chunk, reset, router]);
+
+  if (retrying) {
+    return (
+      <div role="status" aria-label="Loading" className="flex min-h-[100dvh] items-center justify-center bg-background">
+        <div className="size-6 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
