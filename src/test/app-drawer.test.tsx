@@ -44,6 +44,10 @@ describe("AppDrawer", () => {
     expect(screen.queryByRole("button", { name: "Search workspace" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Vision" })).not.toBeInTheDocument();
     const filters = screen.getByRole("tablist", { name: "Search categories" });
+    expect(search.closest(".drawer-top")).toHaveClass("relative");
+    expect(search).toHaveClass("drawer-floating");
+    expect(screen.getByRole("button", { name: "Back to drawer" })).toHaveClass("drawer-floating");
+    for (const filter of screen.getAllByRole("tab")) expect(filter).toHaveClass("drawer-floating", "drawer-filter");
     expect(search.compareDocumentPosition(filters) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     fireEvent.change(search, { target: { value: "Design" } });
     expect(search).toHaveValue("Design");

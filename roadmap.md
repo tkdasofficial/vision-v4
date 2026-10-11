@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Fix search transparency covering results and give each filter its own floating glass surface.
 - [x] Make AppDrawer a protected page with an inline search header, filters below it, and a back button returning to navigation. 62 tests pass; desktop/mobile component browser checks confirm header replacement, 12px top gap, filter selection, clearing and back. Signed-in search results remain unverified without a session.
 - [x] Replace sidebars with full-screen AppDrawer and embedded workspace search; floating translucent edges, 12px top gap, no divider. 60 tests pass; component browser checks confirm fullscreen sizing and mobile overflow/scroll/search/close behavior. Signed-in search results remain unverified without a session.
 - [x] Simplify mobile code boxes and full-screen viewers; preserve desktop tools and verify neutral full-screen previews.
