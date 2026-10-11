@@ -14,6 +14,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ChatRouteImport } from './routes/chat'
 import { Route as EnterpriseRouteImport } from './routes/enterprise'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as GettingStartedRouteImport } from './routes/getting-started'
@@ -117,6 +118,11 @@ const AppRoute = AppRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChatRoute = ChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EnterpriseRoute = EnterpriseRouteImport.update({
@@ -320,19 +326,19 @@ const BillingPlansRoute = BillingPlansRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChatIndexRoute = ChatIndexRouteImport.update({
-  id: '/chat/',
-  path: '/chat/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => ChatRoute,
 } as any)
 const ChatChatIdRoute = ChatChatIdRouteImport.update({
-  id: '/chat/$chatId',
-  path: '/chat/$chatId',
-  getParentRoute: () => rootRouteImport,
+  id: '/$chatId',
+  path: '/$chatId',
+  getParentRoute: () => ChatRoute,
 } as any)
 const ChatIncognitoRoute = ChatIncognitoRouteImport.update({
-  id: '/chat/incognito',
-  path: '/chat/incognito',
-  getParentRoute: () => rootRouteImport,
+  id: '/incognito',
+  path: '/incognito',
+  getParentRoute: () => ChatRoute,
 } as any)
 const DocsSplatRoute = DocsSplatRouteImport.update({
   id: '/docs/$',
@@ -523,6 +529,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/chat': typeof ChatRouteWithChildren
   '/enterprise': typeof EnterpriseRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/getting-started': typeof GettingStartedRoute
@@ -694,6 +701,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/chat': typeof ChatRouteWithChildren
   '/enterprise': typeof EnterpriseRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/getting-started': typeof GettingStartedRoute
@@ -782,6 +790,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/auth'
+    | '/chat'
     | '/enterprise'
     | '/forgot-password'
     | '/getting-started'
@@ -952,6 +961,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/auth'
+    | '/chat'
     | '/enterprise'
     | '/forgot-password'
     | '/getting-started'
@@ -1039,6 +1049,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  ChatRoute: typeof ChatRouteWithChildren
   EnterpriseRoute: typeof EnterpriseRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   GettingStartedRoute: typeof GettingStartedRoute
@@ -1057,8 +1068,6 @@ export interface RootRouteChildren {
   ApiFilesRoute: typeof ApiFilesRoute
   ApiJobsRoute: typeof ApiJobsRouteWithChildren
   BillingPlansRoute: typeof BillingPlansRoute
-  ChatChatIdRoute: typeof ChatChatIdRoute
-  ChatIncognitoRoute: typeof ChatIncognitoRoute
   DocsSplatRoute: typeof DocsSplatRoute
   DocumentsDocIdRoute: typeof DocumentsDocIdRoute
   GithubCallbackRoute: typeof GithubCallbackRoute
@@ -1071,7 +1080,6 @@ export interface RootRouteChildren {
   StudioImagesRoute: typeof StudioImagesRoute
   StudioVideosRoute: typeof StudioVideosRoute
   VideosVideoChatIdRoute: typeof VideosVideoChatIdRoute
-  ChatIndexRoute: typeof ChatIndexRoute
   ImagesIndexRoute: typeof ImagesIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
   VideosIndexRoute: typeof VideosIndexRoute
@@ -1114,6 +1122,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chat': {
+      id: '/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/enterprise': {
@@ -1398,24 +1413,24 @@ declare module '@tanstack/react-router' {
     }
     '/chat/': {
       id: '/chat/'
-      path: '/chat'
+      path: '/'
       fullPath: '/chat/'
       preLoaderRoute: typeof ChatIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ChatRoute
     }
     '/chat/$chatId': {
       id: '/chat/$chatId'
-      path: '/chat/$chatId'
+      path: '/$chatId'
       fullPath: '/chat/$chatId'
       preLoaderRoute: typeof ChatChatIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ChatRoute
     }
     '/chat/incognito': {
       id: '/chat/incognito'
-      path: '/chat/incognito'
+      path: '/incognito'
       fullPath: '/chat/incognito'
       preLoaderRoute: typeof ChatIncognitoRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ChatRoute
     }
     '/docs/$': {
       id: '/docs/$'
@@ -1744,6 +1759,20 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface ChatRouteChildren {
+  ChatChatIdRoute: typeof ChatChatIdRoute
+  ChatIncognitoRoute: typeof ChatIncognitoRoute
+  ChatIndexRoute: typeof ChatIndexRoute
+}
+
+const ChatRouteChildren: ChatRouteChildren = {
+  ChatChatIdRoute: ChatChatIdRoute,
+  ChatIncognitoRoute: ChatIncognitoRoute,
+  ChatIndexRoute: ChatIndexRoute,
+}
+
+const ChatRouteWithChildren = ChatRoute._addFileChildren(ChatRouteChildren)
+
 interface EnterpriseRouteChildren {
   EnterpriseEmailRoute: typeof EnterpriseEmailRoute
   EnterpriseGettingStartedRoute: typeof EnterpriseGettingStartedRoute
@@ -1822,6 +1851,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  ChatRoute: ChatRouteWithChildren,
   EnterpriseRoute: EnterpriseRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   GettingStartedRoute: GettingStartedRoute,
@@ -1840,8 +1870,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiFilesRoute: ApiFilesRoute,
   ApiJobsRoute: ApiJobsRouteWithChildren,
   BillingPlansRoute: BillingPlansRoute,
-  ChatChatIdRoute: ChatChatIdRoute,
-  ChatIncognitoRoute: ChatIncognitoRoute,
   DocsSplatRoute: DocsSplatRoute,
   DocumentsDocIdRoute: DocumentsDocIdRoute,
   GithubCallbackRoute: GithubCallbackRoute,
@@ -1854,7 +1882,6 @@ const rootRouteChildren: RootRouteChildren = {
   StudioImagesRoute: StudioImagesRoute,
   StudioVideosRoute: StudioVideosRoute,
   VideosVideoChatIdRoute: VideosVideoChatIdRoute,
-  ChatIndexRoute: ChatIndexRoute,
   ImagesIndexRoute: ImagesIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
   VideosIndexRoute: VideosIndexRoute,
