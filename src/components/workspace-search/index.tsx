@@ -84,6 +84,8 @@ export default function WorkspaceSearch({ library = false, topSearch = false, on
                 {(library ? availableTypes : categories).map((entry) => <TabsTrigger className="h-10 flex-none rounded-full border-0 bg-transparent px-5 text-base font-semibold text-muted-foreground data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none" key={entry.value} value={entry.value}>{entry.label}</TabsTrigger>)}
               </TabsList>
             </Tabs>
+            </div>
+          </div>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-2 sm:px-8" onScroll={(event) => onScrollChange?.(event.currentTarget.scrollTop > 8)}>
           <div className="mx-auto max-w-3xl">
