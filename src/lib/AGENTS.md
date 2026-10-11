@@ -6,3 +6,5 @@
 
 - Which workflow a chat message triggers (tool job, project, file export, or written answer) is decided only by pure `src/lib/ai/request-route.ts` (tested in `src/test/request-route.test.ts`); non-Default modes and long pasted briefs always get a written answer. Why: keyword triggers inside long prompts sent requests to the wrong workflow.
 - Every provider call goes through `src/lib/ai/rate-limiter.ts` (per-provider RPM window, max concurrency, Retry-After cool-down, circuit breaker; tested) inside `streamFromProvider`, which logs `[ai:call]` telemetry. Why: one place enforces limits for chat, deep engine and jobs alike.
+
+- Enterprise Login (VISION BDI): table `enterprise_attempts`, logic in `cloud/enterprise.server.ts`, domain checks in root `security/identity/domain-verification.ts`. Why: one place for attempt state and checks.
