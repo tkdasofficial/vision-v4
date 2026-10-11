@@ -15,7 +15,7 @@ describe("Advanced code viewer", () => {
     expect(codeLanguageLabel("javascript")).toBe("JavaScript");
     expect(codeLanguageLabel("cpp")).toBe("C++");
     render(<FullScreenCodeView code={code} language="html" onClose={vi.fn()} />);
-    const toggle = screen.getByRole("button", { name: "Preview", exact: true });
+    const toggle = screen.getByRole("button", { name: "Preview" });
     expect(toggle.parentElement?.querySelectorAll("button")[1]).toHaveAccessibleName("Download code.html");
     fireEvent.click(toggle);
     expect(screen.getByTitle("code.html preview")).toHaveAttribute("sandbox", "allow-scripts");
