@@ -55,8 +55,10 @@ describe("App routing", () => {
 describe("legacy addresses", () => {
   it.each([
     ["/app/new", "/chat"],
-    ["/studio/images", "/images"],
-    ["/studio/videos", "/videos"],
+    ["/studio/images", "/chat"],
+    ["/studio/videos", "/chat"],
+    ["/images", "/chat"],
+    ["/videos/v1", "/chat/v1"],
     ["/app/chat/abc", "/chat/abc"],
     ["/app/doc/d1", "/documents/d1"],
     ["/app/incognito", "/chat/incognito"],
