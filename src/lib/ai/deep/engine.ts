@@ -274,7 +274,7 @@ export async function runDeepEngine(o: EngineOptions): Promise<EngineResult> {
       progress("correcting", `${cap(noun)} ${t.index + 1}`);
       const extra = `${crossContext}Previous version of this part:\n${clip(t.output ?? "", 12000)}\n\nVerification found these problems:\n- ${t.findings.join("\n- ")}\n\nReturn the complete corrected part only. Keep everything that was already correct.`;
       await generate(t, "correct", extra);
-      if (t.status !== "generated") break;
+      if ((t.status as TaskStatus) !== "generated") break;
       progress("verifying", `${cap(noun)} ${t.index + 1}`);
       await verify(t);
     }

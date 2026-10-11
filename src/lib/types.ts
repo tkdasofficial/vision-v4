@@ -114,7 +114,7 @@ export type ChatMessage = {
   /** Internal workflow the server used; never changes the selected mode. */
   executionMode?: string;
   /** Deep Thinking Mode progress for this reply (status card + final answer). */
-  deep?: { stage: DeepStage; seconds?: number };
+  deep?: { stage: DeepStage; seconds?: number; detail?: string };
 };
 
-export type DeepStage = "thinking" | "analyzing" | "researching" | "working" | "crafting" | "done" | "failed";
+export type DeepStage = "thinking" | "analyzing" | "planning" | "researching" | "working" | "generating" | "verifying" | "correcting" | "validating" | "crafting" | "done" | "failed";

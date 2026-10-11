@@ -70,6 +70,7 @@ export const Route = createFileRoute("/api/chat")({
         }
         // Deep Thinking Mode: deterministic analysis; complex requests go through the bounded verify/correct pipeline.
         let deepAnalysis: import("@/lib/ai/deep/analyze").RequestAnalysis | null = null;
+        const baseSystem = system;
         if (task.executionMode === "deep") {
           const { analyzeRequest } = await import("@/lib/ai/deep/analyze");
           const { planAddendum } = await import("@/lib/ai/deep/pipeline");
@@ -80,12 +81,12 @@ export const Route = createFileRoute("/api/chat")({
 
         if (deepAnalysis && !lastHasMedia) {
           const { runDeepPipeline } = await import("@/lib/ai/deep/pipeline");
-          const { collectStream, sseChunk, sseDone, sseComment } = await import("@/lib/ai/deep/sse");
+          const { collectStream, sseChunk, sseDone, sseComment, sseStatus } = await import("@/lib/ai/deep/sse");
           const models = candidatesFor(task);
           let usedModel = "";
-          const call = async (msgs: unknown[]) => {
+          const callWith = (order: typeof models) => async (msgs: unknown[]) => {
             let last: { ok: false; status: number; reason: string } = { ok: false, status: 502, reason: "no model" };
-            for (const t of models) {
+            for (const t of order) {
               const r = await streamFromProvider(t, msgs, { maxTokens: 8192, deep: true }, request.signal);
               if (r.ok) {
                 try { const c = await collectStream(r.body); usedModel = t.label; return { ok: true as const, ...c }; }
@@ -97,13 +98,29 @@ export const Route = createFileRoute("/api/chat")({
             }
             return last;
           };
+          const call = callWith(models);
+          // Verification prefers a different configured model than generation, for independent evidence.
+          const reviewCall = callWith(models.length > 1 ? [...models.slice(1), models[0]] : models);
+          const requestId = typeof body?.requestId === "string" && /^[\w-]{8,64}$/.test(body.requestId) ? body.requestId : crypto.randomUUID();
+          const conversationId = typeof body?.conversationId === "string" ? body.conversationId.slice(0, 64) : undefined;
           const stream = new ReadableStream<Uint8Array>({
             async start(ctrl) {
               const ping = setInterval(() => { try { ctrl.enqueue(sseComment("thinking")); } catch { /* closed */ } }, 8000);
               ctrl.enqueue(sseComment("thinking"));
               try {
                 const t0 = Date.now();
-                const res = await runDeepPipeline({ messages: fullMessages as any, analysis: deepAnalysis!, call, request: lastText, plan: deepAnalysis!.complex || lastText.length > 400, review: true });
+                const progress = (stage: string, detail?: string) => { try { ctrl.enqueue(sseStatus(stage, detail)); } catch { /* closed */ } };
+                const { shouldDecompose, runDeepEngine } = await import("@/lib/ai/deep/engine");
+                if (shouldDecompose(deepAnalysis!)) {
+                  const { d1ExecutionStore } = await import("@/lib/ai/deep/store.server");
+                  const r = await runDeepEngine({ request: lastText, requestId, conversationId, analysis: deepAnalysis!, baseSystem, call: call as any, reviewCall: reviewCall as any, store: d1ExecutionStore(caller.user.id), progress, log: (e) => console.log("[chat:deep:engine]", JSON.stringify({ user: caller.user.id, requestId, ...e })) });
+                  console.log("[chat:deep]", JSON.stringify({ user: caller.user.id, engine: "tasks", model: usedModel, overall: r.state.overall, final: r.state.finalValidation, calls: r.calls, reused: r.reused, ms: Date.now() - t0 }));
+                  if (r.state.overall === "failed" && !r.state.tasks.some((t) => t.output)) ctrl.enqueue(sseChunk(r.state.tasks.some((t) => /\(429\)/.test(t.findings.join(" "))) ? "AI is busy right now. Please try again in a moment." : "Deep Thinking couldn't produce an answer right now — no result was generated. Please try again."));
+                  else for (let i = 0; i < r.text.length; i += 400) ctrl.enqueue(sseChunk(r.text.slice(i, i + 400)));
+                  return;
+                }
+                progress("analyzing");
+                const res = await runDeepPipeline({ messages: fullMessages as any, analysis: deepAnalysis!, call, request: lastText, plan: deepAnalysis!.complex || lastText.length > 400, review: true, progress });
                 console.log("[chat:deep]", JSON.stringify({ user: caller.user.id, model: usedModel, ok: res.ok, stages: res.stages, corrections: res.ok ? res.corrections : 0, remaining: res.ok ? res.remaining.length : null, ms: Date.now() - t0 }));
                 if (res.ok) {
                   for (let i = 0; i < res.text.length; i += 400) ctrl.enqueue(sseChunk(res.text.slice(i, i + 400)));

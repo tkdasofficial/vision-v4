@@ -7,12 +7,12 @@ export async function streamChat(
   messages: { role: string; content: any }[],
   onText: (full: string) => void,
   toolId?: string,
-  opts: { mode?: ChatMode; onMeta?: (m: ChatMeta) => void; signal?: AbortSignal } = {},
+  opts: { mode?: ChatMode; onMeta?: (m: ChatMeta) => void; onStatus?: (stage: string, detail?: string) => void; signal?: AbortSignal; requestId?: string; conversationId?: string } = {},
 ): Promise<string> {
   const resp = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages, toolId, mode: opts.mode ?? "default" }),
+    body: JSON.stringify({ messages, toolId, mode: opts.mode ?? "default", requestId: opts.requestId, conversationId: opts.conversationId }),
     signal: opts.signal,
   });
   if (!resp.ok || !resp.body) {
@@ -43,6 +43,7 @@ export async function streamChat(
       if (json === "[DONE]") continue;
       try {
         const p = JSON.parse(json);
+        if (p.vision_status) { opts.onStatus?.(String(p.vision_status.stage), p.vision_status.detail ? String(p.vision_status.detail) : undefined); continue; }
         const delta = p.choices?.[0]?.delta?.content ?? p.response;
         if (delta) { text += delta; onText(text); }
       } catch { /* partial line */ }

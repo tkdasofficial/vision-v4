@@ -76,3 +76,4 @@ CREATE TABLE IF NOT EXISTS runtime_jobs (job_id TEXT PRIMARY KEY, user_id TEXT N
 CREATE INDEX IF NOT EXISTS idx_runtime_user_status ON runtime_jobs(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_runtime_session ON runtime_jobs(session_hash);
 ALTER TABLE runtime_jobs ADD COLUMN gh_checked_at TEXT;
+CREATE TABLE IF NOT EXISTS deep_executions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, request_id TEXT NOT NULL, conversation_id TEXT, state TEXT NOT NULL, overall TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, UNIQUE(user_id, request_id));

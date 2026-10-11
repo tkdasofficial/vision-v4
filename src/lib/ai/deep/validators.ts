@@ -81,5 +81,61 @@ export function validateCandidate(text: string, a: RequestAnalysis, finishReason
   if (a.items) issues.push(...checkSequence(extractItemNumbers(text, a.items.noun), a.items.count));
   if (a.wantsJson) issues.push(...checkJson(text));
   issues.push(...checkDurations(text, a));
+  issues.push(...checkStructure(text));
   return issues;
+}
+
+/** GFM tables outside code fences: column counts, duplicate rows and "Total" rows that don't add up. */
+export function checkTables(text: string): Issue[] {
+  const issues: Issue[] = [];
+  const body = text.replace(/```[\s\S]*?```/g, "");
+  const blocks = body.match(/(?:^[ \t]*\|.*\|[ \t]*(?:\n|$)){2,}/gm) ?? [];
+  const cells = (l: string) => l.trim().replace(/^\||\|$/g, "").split(/(?<!\\)\|/).map((c) => c.trim());
+  blocks.forEach((b, bi) => {
+    const lines = b.trim().split("\n");
+    if (lines.length < 2 || !/^\s*\|?\s*:?-{2,}/.test(lines[1])) return;
+    const head = cells(lines[0]), rows = lines.slice(2).map(cells);
+    const name = `Table ${bi + 1}`;
+    const bad = rows.map((r, i) => (r.length !== head.length ? i + 1 : 0)).filter(Boolean);
+    if (bad.length) issues.push({ code: "table_columns", message: `${name}: row(s) ${bad.join(", ")} don't have ${head.length} cells.` });
+    const seen = new Set<string>(), dups: number[] = [];
+    rows.forEach((r, i) => { const k = r.join("|").toLowerCase(); if (k.replace(/\|/g, "").trim() && seen.has(k)) dups.push(i + 1); seen.add(k); });
+    if (dups.length) issues.push({ code: "table_duplicate", message: `${name}: duplicate row(s) ${dups.join(", ")}.` });
+    const num = (s: string) => { const v = s.replace(/[*_$€£₹,%\s]/g, ""); return /^-?\d+(\.\d+)?$/.test(v) ? Number(v) : NaN; };
+    const ti = rows.findIndex((r) => /^\**\s*(grand\s+)?total\s*\**$/i.test(r[0] ?? ""));
+    if (ti > 0) {
+      for (let c = 1; c < head.length; c++) {
+        const vals = rows.slice(0, ti).map((r) => num(r[c] ?? ""));
+        const tot = num(rows[ti][c] ?? "");
+        if (!Number.isFinite(tot) || vals.some((v) => !Number.isFinite(v)) || /%|avg|average|rate|price|per/i.test(head[c])) continue;
+        const sum = vals.reduce((x, y) => x + y, 0);
+        if (Math.abs(sum - tot) > Math.max(0.011, Math.abs(sum) * 0.005)) issues.push({ code: "table_total", message: `${name}: "${head[c]}" total is ${tot} but the rows add up to ${Math.round(sum * 100) / 100}.` });
+      }
+    }
+  });
+  return issues;
+}
+
+/** Static checks for fenced code: JSON must parse; brackets must balance in C-like code; HTML documents must close. */
+export function checkCode(text: string): Issue[] {
+  const issues: Issue[] = [];
+  for (const m of text.matchAll(/```([\w+#.-]*)[^\n]*\n([\s\S]*?)```/g)) {
+    const lang = m[1].toLowerCase(), src = m[2];
+    if (lang === "json") { try { JSON.parse(src); } catch (e: any) { issues.push({ code: "code_json", message: `A JSON block doesn't parse: ${String(e?.message ?? e).slice(0, 100)}.` }); } continue; }
+    if (["html", "htm"].includes(lang)) {
+      if (/<html[\s>]/i.test(src) && !/<\/html>/i.test(src)) issues.push({ code: "code_html", message: "An HTML document is missing its closing </html> tag." });
+      continue;
+    }
+    if (!["js", "javascript", "ts", "typescript", "jsx", "tsx", "java", "c", "cpp", "c++", "cs", "csharp", "go", "rust", "rs", "kotlin", "swift", "php", "css", "scss"].includes(lang)) continue;
+    const stripped = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1").replace(/(["'`])(?:\\.|(?!\1)[^\\\n])*\1/g, '""');
+    const stack: string[] = []; const pair: Record<string, string> = { ")": "(", "]": "[", "}": "{" };
+    let broken = false;
+    for (const ch of stripped) { if ("([{".includes(ch)) stack.push(ch); else if (ch in pair) { if (stack.pop() !== pair[ch]) { broken = true; break; } } }
+    if (broken || stack.length) issues.push({ code: "code_brackets", message: `A ${lang} code block has unbalanced brackets.` });
+  }
+  return issues;
+}
+
+export function checkStructure(text: string): Issue[] {
+  return [...checkTables(text), ...checkCode(text)];
 }

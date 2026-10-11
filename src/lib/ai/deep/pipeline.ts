@@ -62,7 +62,10 @@ export async function runDeepPipeline(opts: {
   plan?: boolean;
   /** Run the independent model review loop after deterministic checks. */
   review?: boolean;
+  /** Truthful progress events reflecting the stage actually running. */
+  progress?: (stage: "analyzing" | "planning" | "generating" | "verifying" | "correcting" | "assembling") => void;
 }): Promise<DeepResult> {
+  const prog = opts.progress ?? (() => {});
   const L = { ...DEEP_LIMITS, ...opts.limits };
   const now = opts.now ?? Date.now;
   const start = now();
@@ -73,7 +76,7 @@ export async function runDeepPipeline(opts: {
 
   // 0. Hidden plan: analyze the task and outline the solution; never shown to the user.
   if (opts.plan && request) {
-    stages.push("plan");
+    stages.push("plan"); prog("planning");
     const p = await opts.call([
       { role: "system", content: "Analyze the user's request before anyone answers it. Output a concise internal plan: the exact task, required format/length/counts, constraints, sub-problems in order, facts or calculations to double-check, and likely pitfalls. Do not write the answer." },
       { role: "user", content: clip(request, 20000) },
@@ -86,7 +89,7 @@ export async function runDeepPipeline(opts: {
   }
 
   // 1. Candidate
-  stages.push("generate");
+  stages.push("generate"); prog("generating");
   const first = await opts.call(messages);
   if (!first.ok) return { ok: false, status: first.status, reason: first.reason, stages };
   let text = first.text;
@@ -106,7 +109,7 @@ export async function runDeepPipeline(opts: {
 
   let reviewedText: string | null = null;
   const review = async (): Promise<Issue[] | null> => {
-    stages.push("review");
+    stages.push("review"); prog("verifying");
     const r = await opts.call([
       { role: "system", content: REVIEW_SYSTEM },
       { role: "user", content: `User request:\n${clip(request, 12000)}\n\nDraft answer:\n${clip(text, 30000)}` },
@@ -127,7 +130,7 @@ export async function runDeepPipeline(opts: {
   let corrections = 0;
   while (issues.some((i) => i.code !== "truncated") && corrections < L.maxCorrections && !overBudget()) {
     corrections++;
-    stages.push("correct");
+    stages.push("correct"); prog("correcting");
     const r = await opts.call([...messages, { role: "assistant", content: text },
       { role: "user", content: `Automatic verification found these problems in your answer:\n- ${issues.map((i) => i.message).join("\n- ")}\nReturn the complete corrected answer only (not a diff, no commentary about the correction). Keep everything that was already correct.` }]);
     if (!r.ok) break;
@@ -145,6 +148,7 @@ export async function runDeepPipeline(opts: {
     if (!issues.length) break;
   }
 
+  prog("assembling");
   // 4. Honest disclosure of anything still unresolved or unchecked.
   if (issues.length) {
     text += `\n\n> **Verification note:** some points could not be confirmed after ${corrections} correction attempt(s):\n${issues.map((i) => `> - ${i.message}`).join("\n")}`;
