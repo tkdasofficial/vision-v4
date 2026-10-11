@@ -44,7 +44,10 @@ const DesktopSidebar = ({ onNewChat, onSelectChat, isMainChat, activeChatId, cha
         <Button variant="secondary" size="icon" className="shrink-0 rounded-full [&_svg]:size-5" aria-label="Open search" title="Search" onClick={() => navigate("/search")}><Search /></Button>
       </div>
 
+      <div role="separator" aria-orientation="horizontal" className="mx-8 h-px shrink-0 bg-sidebar-border" />
+
       <SidebarFeatures />
+
 
       {displayHistory.length > 0 && (
         <div className="px-3 pt-4 pb-2 min-h-0 flex-1 overflow-y-auto">
