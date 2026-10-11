@@ -214,14 +214,17 @@
   backdrop-filter: blur(16px);
 }
 .drawer-top::before {
-  background: linear-gradient(to bottom, hsl(var(--background) / 0.94), hsl(var(--background) / 0.65) 55%, transparent);
-  mask-image: linear-gradient(to bottom, black 50%, transparent);
+  background: linear-gradient(to bottom, hsl(var(--background) / 0.35), hsl(var(--background) / 0.12) 55%, transparent);
+  mask-image: linear-gradient(to bottom, black, transparent);
+  opacity: 0;
+  transition: opacity 220ms ease, backdrop-filter 220ms ease;
 }
 .drawer-bottom::before {
   background: linear-gradient(to top, hsl(var(--background) / 0.96), hsl(var(--background) / 0.6) 55%, transparent);
   mask-image: linear-gradient(to top, black 50%, transparent);
 }
-.app-drawer[data-scrolled=true] .drawer-top::before { backdrop-filter: blur(24px); }
+.app-drawer[data-scrolled=true] .drawer-top::before { opacity: 1; backdrop-filter: blur(12px); }
+@media (prefers-reduced-motion: reduce) { .drawer-top::before { transition: none; } }
 
 :root[data-accent=blue] { --primary: 217 80% 50%; --primary-foreground: 0 0% 98%; --ring: 217 80% 50%; }
 :root[data-accent=green] { --primary: 150 60% 36%; --primary-foreground: 0 0% 98%; --ring: 150 60% 36%; }

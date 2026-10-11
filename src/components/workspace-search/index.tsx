@@ -67,8 +67,8 @@ export default function WorkspaceSearch({ library = false, topSearch = false, on
     : "h-10 flex-none rounded-full border-0 bg-transparent px-5 text-base font-semibold text-muted-foreground data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none";
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-        <div className={topSearch ? "drawer-top relative z-10 shrink-0 pb-5 pt-[max(12px,env(safe-area-inset-top))]" : "shrink-0"}>
+    <div className={topSearch ? "relative grid min-h-0 flex-1 grid-cols-1 grid-rows-1" : "flex min-h-0 flex-1 flex-col"}>
+        <div className={topSearch ? "drawer-top relative z-10 col-start-1 row-start-1 self-start pb-5 pt-[max(12px,env(safe-area-inset-top))]" : "shrink-0"}>
           {topSearch && <header className="px-4 sm:px-8">
             <div className="mx-auto flex max-w-4xl items-center gap-3">
               <Button variant="floating" size="icon" className="size-11 shrink-0" aria-label="Back to drawer" title="Back to drawer" onClick={onBack}><ArrowLeft /></Button>
@@ -90,7 +90,7 @@ export default function WorkspaceSearch({ library = false, topSearch = false, on
             </div>
           </div>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-2 sm:px-8" onScroll={(event) => onScrollChange?.(event.currentTarget.scrollTop > 8)}>
+        <div className={topSearch ? "min-h-0 overflow-y-auto col-start-1 row-start-1 px-4 pb-6 pt-[max(144px,calc(env(safe-area-inset-top)+132px))] sm:px-8" : "min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-2 sm:px-8"} onScroll={(event) => onScrollChange?.(event.currentTarget.scrollTop > 8)}>
           <div className="mx-auto max-w-3xl">
             {loading ? <p role="status" className="py-12 text-center text-muted-foreground">Loading…</p> : error ? <p role="alert" className="py-12 text-center text-destructive">Search couldn’t load. Please try refreshing.</p> : results.length === 0 ? <div className="py-16 text-center text-muted-foreground"><SearchIcon className="mx-auto mb-4 h-8 w-8" /><p>{query ? "No results found" : "No items yet"}</p></div> : categories.filter((entry) => category === "all" || category === entry.value).map((entry) => {
               const group = results.filter((item) => item.category === entry.value);

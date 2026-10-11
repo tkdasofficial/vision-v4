@@ -37,7 +37,7 @@ describe("AppDrawer", () => {
   });
   it("embeds search and returns to navigation without page navigation", () => {
     const close = vi.fn();
-    render(<AppDrawerView onClose={close} onNewChat={vi.fn()} onSelectChat={vi.fn()} />);
+    const { container } = render(<AppDrawerView onClose={close} onNewChat={vi.fn()} onSelectChat={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: "Search workspace" }));
     const search = screen.getByRole("searchbox", { name: "Search anything" });
     expect(search).toHaveFocus();
@@ -45,6 +45,14 @@ describe("AppDrawer", () => {
     expect(screen.queryByRole("button", { name: "Vision" })).not.toBeInTheDocument();
     const filters = screen.getByRole("tablist", { name: "Search categories" });
     expect(search.closest(".drawer-top")).toHaveClass("relative");
+    expect(search.closest(".drawer-top")).toHaveClass("col-start-1", "row-start-1", "self-start");
+    const scroller = container.querySelector(".overflow-y-auto");
+    expect(scroller).toHaveClass("col-start-1", "row-start-1");
+    if (!scroller) throw new Error("Missing search scroller");
+    fireEvent.scroll(scroller, { target: { scrollTop: 80 } });
+    expect(container.firstChild).toHaveAttribute("data-scrolled", "true");
+    fireEvent.scroll(scroller, { target: { scrollTop: 0 } });
+    expect(container.firstChild).toHaveAttribute("data-scrolled", "false");
     expect(search).toHaveClass("drawer-floating");
     expect(screen.getByRole("button", { name: "Back to drawer" })).toHaveClass("drawer-floating");
     for (const filter of screen.getAllByRole("tab")) expect(filter).toHaveClass("drawer-floating", "drawer-filter");
