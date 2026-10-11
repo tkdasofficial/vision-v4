@@ -1,5 +1,5 @@
 import { useState, type ComponentType } from "react";
-import { Palette, Languages, Sparkles, MessagesSquare, Database, ShieldCheck, Accessibility, Bell, Info, User, Inbox, Crown, LayoutDashboard, HelpCircle, LifeBuoy, LogOut, ChevronRight, Pencil, X, Loader2 } from "lucide-react";
+import { Palette, Languages, Sparkles, MessagesSquare, Database, ShieldCheck, Accessibility, Bell, Info, User, Inbox, Crown, LayoutDashboard, HelpCircle, LifeBuoy, LogOut, ChevronRight, Pencil, ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "@/lib/router-compat";
@@ -25,7 +25,7 @@ function Group({ title, rows }: { title?: string; rows: Row[] }) {
       <h2 className="mb-2 px-5 text-xs font-medium uppercase tracking-normal text-muted-foreground">{title}</h2>
       <div className="space-y-1.5">
         {rows.map(({ to, icon: Icon, title: label }) => (
-          <Button key={to + label} variant="ghost" onClick={() => navigate(to)} className="h-auto min-h-12 w-full justify-start gap-3 whitespace-normal rounded-full bg-settings-surface px-5 py-3 text-left text-sm font-medium focus-visible:ring-inset focus-visible:ring-offset-0 [&_svg]:size-5">
+          <Button key={to + label} variant="floating" onClick={() => navigate(to)} className="h-auto min-h-12 w-full justify-start gap-3 whitespace-normal rounded-full px-5 py-3 text-left text-sm font-medium focus-visible:ring-inset focus-visible:ring-offset-0 [&_svg]:size-5">
             <Icon className="text-muted-foreground" />
             <span className="min-w-0 flex-1">{label}</span>
             <ChevronRight className="text-muted-foreground opacity-50" />
@@ -39,7 +39,6 @@ function Group({ title, rows }: { title?: string; rows: Row[] }) {
 export default function SettingsDirectory() {
   const { profile, user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState(false);
   const name = profile?.full_name || "User";
@@ -60,18 +59,16 @@ export default function SettingsDirectory() {
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-settings-canvas text-foreground">
-      <header className="z-10 shrink-0 px-4 pb-2 pt-[max(12px,env(safe-area-inset-top))] sm:px-8" data-compact={scrolled}>
-        <div className="mx-auto flex h-11 max-w-xl items-center justify-between gap-3">
-          {scrolled ? <Button variant="ghost" onClick={() => navigate("/account")} className="h-11 min-w-0 justify-start gap-2 rounded-full bg-settings-surface py-1 pl-1 pr-4 text-left">
-            <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-settings-surface text-xs">{avatar}</span>
-            <span className="truncate text-sm font-medium">{email || name}</span>
-          </Button> : <h1 className="pl-2 font-display text-xl font-semibold">Settings</h1>}
-          <Button variant="ghost" size="icon" className="size-11 shrink-0 rounded-full bg-settings-surface [&_svg]:size-5" aria-label="Close settings" title="Close settings" onClick={() => navigate("/chat")}><X /></Button>
+      <header className="z-10 shrink-0 px-4 pb-2 pt-[max(12px,env(safe-area-inset-top))] sm:px-8">
+        <div className="mx-auto grid h-11 max-w-xl grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-3">
+          <Button variant="floating" size="icon" className="size-11 shrink-0 rounded-full [&_svg]:size-5" aria-label="Back" title="Back" onClick={() => { if (window.history.length > 1) navigate(-1); else navigate("/drawer"); }}><ArrowLeft /></Button>
+          <h1 className="truncate text-center font-display text-xl font-semibold">Settings</h1>
+          <span aria-hidden="true" />
         </div>
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[max(24px,env(safe-area-inset-bottom))] pt-2 sm:px-8" onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 100)}>
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[max(24px,env(safe-area-inset-bottom))] pt-2 sm:px-8">
         <div className="mx-auto max-w-xl space-y-4">
-          <Button variant="ghost" onClick={() => navigate("/account")} aria-label="Edit profile" className="h-auto min-h-20 w-full justify-start gap-3 whitespace-normal rounded-full bg-settings-surface px-5 py-4 text-left">
+          <Button variant="floating" onClick={() => navigate("/account")} aria-label="Edit profile" className="h-auto min-h-20 w-full justify-start gap-3 whitespace-normal rounded-full px-5 py-4 text-left">
             <span className="relative shrink-0">
               <span className="flex size-12 items-center justify-center overflow-hidden rounded-full bg-secondary text-base font-semibold">{avatar}</span>
               <span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full border-2 border-settings-surface bg-secondary"><Pencil className="size-2.5" /></span>
@@ -79,14 +76,14 @@ export default function SettingsDirectory() {
             <span className="min-w-0 flex-1"><span className="block break-words font-display text-base font-semibold">{name}</span>{email && <span className="mt-0.5 block truncate text-xs font-normal text-muted-foreground">{email}</span>}</span>
             <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
           </Button>
-          <Button variant="ghost" onClick={() => navigate("/billing/plans")} className="h-auto min-h-12 w-full justify-start gap-3 rounded-full bg-settings-surface px-5 py-3 text-sm [&_svg]:size-5"><Crown className="text-muted-foreground" /><span className="flex-1 text-left">Upgrade plan</span><ChevronRight className="text-muted-foreground opacity-50" /></Button>
+          <Button variant="floating" onClick={() => navigate("/billing/plans")} className="h-auto min-h-12 w-full justify-start gap-3 rounded-full px-5 py-3 text-sm [&_svg]:size-5"><Crown className="text-muted-foreground" /><span className="flex-1 text-left">Upgrade plan</span><ChevronRight className="text-muted-foreground opacity-50" /></Button>
           <Group title="Account" rows={account} />
           <Group title="Preferences" rows={SETTINGS_CATEGORIES.filter(({ to }) => to !== "/settings/about").map(({ to, icon, title }) => ({ to, icon, title }))} />
           <Group title="Help" rows={help} />
-          <Button variant="ghost" disabled={signingOut} onClick={async () => { setSigningOut(true); setSignOutError(false); try { await signOut(); navigate("/auth/login", { replace: true }); } catch { setSignOutError(true); setSigningOut(false); } }} className="h-auto min-h-12 w-full justify-start gap-3 rounded-full bg-settings-surface px-5 py-3 text-sm text-destructive [&_svg]:size-5">{signingOut ? <Loader2 className="animate-spin" /> : <LogOut />}{signingOut ? "Logging out…" : "Log out"}</Button>
+          <Button variant="floating" disabled={signingOut} onClick={async () => { setSigningOut(true); setSignOutError(false); try { await signOut(); navigate("/auth/login", { replace: true }); } catch { setSignOutError(true); setSigningOut(false); } }} className="h-auto min-h-12 w-full justify-start gap-3 rounded-full px-5 py-3 text-sm text-destructive [&_svg]:size-5">{signingOut ? <Loader2 className="animate-spin" /> : <LogOut />}{signingOut ? "Logging out…" : "Log out"}</Button>
           {signOutError && <p role="alert" className="px-5 text-sm text-destructive">Couldn’t log out. Please try again.</p>}
           <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-xs text-muted-foreground">
-            <Button variant="ghost" onClick={() => navigate("/legal/privacy")} className="h-9 rounded-full px-3 text-xs text-muted-foreground">Privacy Policy</Button><span aria-hidden="true">·</span><Button variant="ghost" onClick={() => navigate("/legal/terms")} className="h-9 rounded-full px-3 text-xs text-muted-foreground">Terms of Service</Button>
+            <Button variant="floating" onClick={() => navigate("/legal/privacy")} className="h-9 rounded-full px-3 text-xs text-muted-foreground">Privacy Policy</Button><span aria-hidden="true">·</span><Button variant="floating" onClick={() => navigate("/legal/terms")} className="h-9 rounded-full px-3 text-xs text-muted-foreground">Terms of Service</Button>
           </div>
         </div>
       </div>
