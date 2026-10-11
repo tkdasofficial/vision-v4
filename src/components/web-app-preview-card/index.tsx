@@ -24,6 +24,10 @@ import { cn } from "@/lib/utils";
 import { compileProject, type WebAppProject, type GeneratedFile } from "@/lib/web-preview-engine";
 import { downloadProjectAsZip } from "@/lib/zip-export";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import FullScreenCodeView from "@/components/chat/full-screen-code-view";
+import CodeSource from "@/components/chat/code-source";
+import { detectLanguage } from "@/components/chat/highlight";
 
 type Phase = "compiling" | "ready" | "error" | "auto-fixing";
 type Viewport = "desktop" | "tablet" | "mobile";
@@ -126,6 +130,7 @@ const WebAppPreviewCard = ({ project }: Props) => {
   const [viewport, setViewport] = useState<Viewport>("desktop");
   const [consoleLogs, setConsoleLogs] = useState<ConsoleEntry[]>([]);
   const [showFullPreview, setShowFullPreview] = useState(false);
+  const [showFullCode, setShowFullCode] = useState(false);
   const [expandedView, setExpandedView] = useState<"code" | "console" | null>(null);
   const [buildSteps, setBuildSteps] = useState<BuildStep[]>(() =>
     generateBuildSteps(project.framework, project.files, project.dependencies)
@@ -240,6 +245,7 @@ const WebAppPreviewCard = ({ project }: Props) => {
   // Listen for runtime errors from iframe and auto-fix
   useEffect(() => {
     const handler = (e: MessageEvent) => {
+      if (e.source !== iframeRef.current?.contentWindow && e.source !== fullIframeRef.current?.contentWindow) return;
       if (e.data?.type === "console" && e.data.level === "error" && !autoFixTriggered.current && phase === "ready") {
         const msg = e.data.message || "";
         // Only auto-fix for critical errors (syntax, reference, type errors)
@@ -281,7 +287,8 @@ const WebAppPreviewCard = ({ project }: Props) => {
   // Console messages from iframe
   useEffect(() => {
     const handler = (e: MessageEvent) => {
-      if (e.data?.type === "console") {
+      if (e.source !== iframeRef.current?.contentWindow && e.source !== fullIframeRef.current?.contentWindow) return;
+      if (e.data?.type === "console" && ["log", "warn", "error"].includes(e.data.level) && typeof e.data.message === "string") {
         setConsoleLogs(prev => [
           ...prev.slice(-99),
           { level: e.data.level, message: e.data.message, ts: Date.now() },
@@ -477,6 +484,7 @@ const WebAppPreviewCard = ({ project }: Props) => {
                         )}
                       </span>
                       <div className="flex items-center gap-0.5">
+                        <Button variant="ghost" size="icon" className="size-7" aria-label="Open project code viewer" title="Open code viewer" onClick={() => setShowFullCode(true)}><Code className="size-3" /></Button>
                         {editedFiles[currentFile.path] !== undefined && (
                           <button onClick={() => handleResetFile(currentFile.path)} className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors" title="Reset">
                             <RotateCcw className="w-3 h-3" />
@@ -498,9 +506,7 @@ const WebAppPreviewCard = ({ project }: Props) => {
                         spellCheck={false}
                       />
                     ) : (
-                      <pre className="flex-1 overflow-auto p-3 text-[11px] font-mono leading-relaxed text-foreground bg-background">
-                        <code>{currentFile.content}</code>
-                      </pre>
+                      <div className="min-h-0 flex-1 overflow-auto"><CodeSource code={currentFile.content} language={detectLanguage(currentFile.content)} size={11} /></div>
                     )}
                   </>
                 )}
@@ -551,48 +557,15 @@ const WebAppPreviewCard = ({ project }: Props) => {
         </div>
       </div>
 
-      {/* Full-screen preview overlay */}
-      {showFullPreview && (
-        <div className="fixed inset-0 z-50 bg-background flex flex-col animate-fade-in">
-          <div className="flex items-center justify-between px-3 sm:px-4 py-2 border-b border-border bg-muted/30 shrink-0">
-            <div className="flex items-center gap-2">
-              <Bot className="w-4 h-4 text-primary" />
-              <span className="text-xs sm:text-sm font-medium text-foreground">Preview</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent text-muted-foreground font-mono">
-                {frameworkLabel(project.framework)}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              {([
-                { id: "desktop" as Viewport, icon: Monitor },
-                { id: "tablet" as Viewport, icon: Tablet },
-                { id: "mobile" as Viewport, icon: Smartphone },
-              ] as const).map(({ id, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setViewport(id)}
-                  className={cn(
-                    "p-1.5 rounded-md transition-colors",
-                    viewport === id ? "text-foreground bg-accent" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                  )}
-                  title={id}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                </button>
-              ))}
-              <div className="w-px h-4 bg-border mx-1" />
-              <button onClick={() => setShowFullPreview(false)} className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" title="Close">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-          <div className="flex-1 flex justify-center bg-accent/20 overflow-hidden">
-            <div className="h-full bg-background transition-all duration-300" style={{ width: VIEWPORT_SIZES[viewport] ? `${VIEWPORT_SIZES[viewport]}px` : "100%", maxWidth: "100%" }}>
-              <iframe ref={fullIframeRef} srcDoc={previewHTML} sandbox="allow-scripts" className="w-full h-full border-0" title="Web App Full Preview" />
-            </div>
-          </div>
-        </div>
-      )}
+      {(showFullPreview || showFullCode) && currentFile && <FullScreenCodeView
+        code={currentFile.content}
+        language={detectLanguage(currentFile.content)}
+        filename={currentFile.path}
+        previewHTML={previewHTML || undefined}
+        initialView={showFullPreview ? "preview" : "code"}
+        onClose={() => { setShowFullPreview(false); setShowFullCode(false); }}
+      />}
+
     </>
   );
 };
