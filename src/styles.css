@@ -200,8 +200,10 @@
   border: 1px solid var(--drawer-edge);
   box-shadow: var(--drawer-shadow);
   backdrop-filter: blur(20px) saturate(125%);
-  -webkit-backdrop-filter: blur(20px) saturate(125%);
 }
+.drawer-filter { background: var(--drawer-glass); border: 1px solid var(--drawer-edge); box-shadow: var(--drawer-shadow); }
+.drawer-filter:hover { background: hsl(var(--accent)); }
+.drawer-filter[data-state=active] { background: hsl(var(--foreground)); color: hsl(var(--background)); box-shadow: var(--drawer-shadow); }
 .drawer-top, .drawer-bottom { isolation: isolate; }
 .drawer-top::before, .drawer-bottom::before {
   content: "";
@@ -210,7 +212,6 @@
   z-index: -1;
   pointer-events: none;
   backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
 }
 .drawer-top::before {
   background: linear-gradient(to bottom, hsl(var(--background) / 0.94), hsl(var(--background) / 0.65) 55%, transparent);
@@ -220,7 +221,7 @@
   background: linear-gradient(to top, hsl(var(--background) / 0.96), hsl(var(--background) / 0.6) 55%, transparent);
   mask-image: linear-gradient(to top, black 50%, transparent);
 }
-.app-drawer[data-scrolled=true] .drawer-top::before { backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+.app-drawer[data-scrolled=true] .drawer-top::before { backdrop-filter: blur(24px); }
 
 :root[data-accent=blue] { --primary: 217 80% 50%; --primary-foreground: 0 0% 98%; --ring: 217 80% 50%; }
 :root[data-accent=green] { --primary: 150 60% 36%; --primary-foreground: 0 0% 98%; --ring: 150 60% 36%; }

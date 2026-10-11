@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const categories = [
   { value: "chats", label: "Recent Chats", icon: MessageSquare },
   { value: "files", label: "Uploaded Files", icon: FileText },
-  { value: "generated", label: "Generated Items", icon: Sparkles, X },
+  { value: "generated", label: "Generated Items", icon: Sparkles },
 ] as const;
 
 export default function WorkspaceSearch({ library = false, topSearch = false, onBack, onNavigate, onScrollChange }: { library?: boolean; topSearch?: boolean; onBack?: () => void; onNavigate?: () => void; onScrollChange?: (scrolled: boolean) => void }) {
@@ -62,15 +62,18 @@ export default function WorkspaceSearch({ library = false, topSearch = false, on
   const libraryItems = useMemo(() => items.filter((item) => item.category !== "chats"), [items]);
   const availableTypes = assetTypes.filter((type) => libraryItems.some((item) => (item.assetType || "other") === type.value));
   const results = useMemo(() => filterSearchItems(library ? libraryItems.filter((item) => assetType === "all" || (item.assetType || "other") === assetType) : items, query, category), [items, libraryItems, query, category, library, assetType]);
+  const filterClass = topSearch
+    ? "drawer-floating drawer-filter h-10 flex-none rounded-full px-4 text-sm font-medium text-foreground"
+    : "h-10 flex-none rounded-full border-0 bg-transparent px-5 text-base font-semibold text-muted-foreground data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none";
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-        <div className={topSearch ? "drawer-top z-10 shrink-0 pb-5 pt-[max(12px,env(safe-area-inset-top))]" : "shrink-0"}>
+        <div className={topSearch ? "drawer-top relative z-10 shrink-0 pb-5 pt-[max(12px,env(safe-area-inset-top))]" : "shrink-0"}>
           {topSearch && <header className="px-4 sm:px-8">
             <div className="mx-auto flex max-w-4xl items-center gap-3">
               <Button variant="floating" size="icon" className="size-11 shrink-0" aria-label="Back to drawer" title="Back to drawer" onClick={onBack}><ArrowLeft /></Button>
               <div className="relative min-w-0 flex-1">
-                <SearchIcon className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                <SearchIcon className="pointer-events-none absolute left-4 top-1/2 z-10 size-5 -translate-y-1/2 text-muted-foreground" />
                 <input autoFocus type="search" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search anything" placeholder="Search anything" className="drawer-floating h-11 w-full appearance-none rounded-full pl-12 pr-11 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:hidden" />
                 {query && <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 size-8 -translate-y-1/2" aria-label="Clear search" title="Clear search" onClick={() => setQuery("")}><X className="size-4" /></Button>}
               </div>
@@ -80,8 +83,8 @@ export default function WorkspaceSearch({ library = false, topSearch = false, on
             <div className="mx-auto max-w-4xl">
             <Tabs value={library ? assetType : category} onValueChange={(value) => library ? setAssetType(value as AssetType | "all") : setCategory(value as SearchCategory | "all")}>
               <TabsList aria-label={library ? "Library file types" : "Search categories"} className="flex h-auto w-max flex-nowrap justify-start gap-2 bg-transparent p-0">
-                <TabsTrigger className="h-10 flex-none rounded-full border-0 bg-transparent px-5 text-base font-semibold text-muted-foreground data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none" value="all">All</TabsTrigger>
-                {(library ? availableTypes : categories).map((entry) => <TabsTrigger className="h-10 flex-none rounded-full border-0 bg-transparent px-5 text-base font-semibold text-muted-foreground data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none" key={entry.value} value={entry.value}>{entry.label}</TabsTrigger>)}
+                <TabsTrigger className={filterClass} value="all">All</TabsTrigger>
+                {(library ? availableTypes : categories).map((entry) => <TabsTrigger className={filterClass} key={entry.value} value={entry.value}>{entry.label}</TabsTrigger>)}
               </TabsList>
             </Tabs>
             </div>
