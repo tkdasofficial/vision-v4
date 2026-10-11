@@ -52,7 +52,7 @@ describe("Advanced code viewer", () => {
     expect(screen.getByRole("button", { name: "split view" })).toBeDisabled();
   });
 
-  it("changes preview sizes, reloads only the frame and reports load errors", () => {
+  it("changes preview sizes, reloads only the frame and reports load errors", async () => {
     render(<PreviewPane html={code} />);
     const frame = screen.getByTitle("Code preview");
     fireEvent.load(frame);
@@ -61,8 +61,10 @@ describe("Advanced code viewer", () => {
     expect(screen.getByText("375 px")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Reload preview" }));
     expect(screen.getByTitle("Code preview")).not.toBe(frame);
+    fireEvent.load(screen.getByTitle("Code preview"));
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Preview ready"));
     fireEvent.error(screen.getByTitle("Code preview"));
-    expect(screen.getByRole("alert")).toHaveTextContent("Preview could not load");
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Preview could not load"));
     fireEvent.click(screen.getByRole("button", { name: "Reload preview" }));
     expect(screen.getByTitle("Code preview")).toBeInTheDocument();
   });
