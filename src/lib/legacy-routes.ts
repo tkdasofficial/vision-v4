@@ -6,10 +6,14 @@ const EXACT: Record<string, string> = {
   "/app": "/chat",
   "/app/new": "/chat",
   "/app/incognito": "/chat/incognito",
-  "/app/images": "/images",
-  "/studio/images": "/images",
-  "/app/videos": "/videos",
-  "/studio/videos": "/videos",
+  "/app/images": "/chat",
+  "/studio/images": "/chat",
+  "/images": "/chat",
+  "/images/": "/chat",
+  "/app/videos": "/chat",
+  "/studio/videos": "/chat",
+  "/videos": "/chat",
+  "/videos/": "/chat",
   "/app/library": "/library",
   "/app/projects": "/projects",
   "/app/project-create": "/projects/new",
@@ -43,6 +47,7 @@ const EXACT: Record<string, string> = {
 
 const DYNAMIC: [RegExp, string][] = [
   [/^\/app\/chat\/([^/]+)$/, "/chat/$1"],
+  [/^\/(?:images|videos)\/([^/]+)$/, "/chat/$1"],
   [/^\/app\/doc\/([^/]+)$/, "/documents/$1"],
 ];
 
