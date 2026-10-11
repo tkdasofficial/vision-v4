@@ -1,4 +1,4 @@
-import { Library, FolderOpen, Plug } from "lucide-react";
+import { Library, FolderOpen, AtSign } from "lucide-react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 const features = [
   { label: "Library", to: "/library", icon: Library },
   { label: "Projects", to: "/projects", icon: FolderOpen },
-  { label: "Plugins", to: "/integrations", icon: Plug },
+  { label: "Plugins", to: "/integrations", icon: AtSign },
 ] as const;
 
 export default function SidebarFeatures({ onNavigate }: { onNavigate?: () => void }) {

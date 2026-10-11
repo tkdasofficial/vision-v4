@@ -1,19 +1,10 @@
 import { RefreshCw, CircleHelp } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Mail, Youtube, Cloud, Calendar, Github, MessageSquare, FileText, Plus, ChevronRight } from "lucide-react";
+import { Plus, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import WorkspaceShell from "@/components/workspace-shell";
 import BottomSearch from "@/components/bottom-search";
-
-const services = [
-  { name: "Gmail", description: "Read and manage email", icon: Mail },
-  { name: "YouTube", description: "Videos and channels", icon: Youtube },
-  { name: "Google Drive", description: "Drive, Docs, Sheets or Slides", icon: Cloud },
-  { name: "Google Calendar", description: "Events and schedules", icon: Calendar },
-  { name: "GitHub", description: "Repositories, issues and code", icon: Github },
-  { name: "Slack", description: "Channels and messages", icon: MessageSquare },
-  { name: "Notion", description: "Pages and workspaces", icon: FileText },
-];
+import { PLUGINS as services } from "@/lib/plugins";
 
 export default function Plugins() {
   const [query, setQuery] = useState("");

@@ -11,6 +11,7 @@ import ModeSelector from "@/components/mode-selector";
 import type { ChatMode } from "@/lib/ai/modes";
 import { appendTranscript } from "@/lib/append-transcript";
 import { readCachedPrefs } from "@/lib/settings";
+import { findMention, filterPlugins, insertMention } from "@/lib/plugins";
 
 type Props = {
   toolName?: string;
@@ -163,7 +164,25 @@ const ChatInput = ({ toolName, onSend, onZipUpload, onFileConvert, onSendFiles, 
     if (textareaRef.current) textareaRef.current.style.height = "auto";
   };
 
+  const [mention, setMention] = useState<{ start: number; query: string } | null>(null);
+  const [mentionIndex, setMentionIndex] = useState(0);
+  const mentionMatches = mention ? filterPlugins(mention.query) : [];
+  const updateMention = (text: string, caret: number) => { const m = findMention(text, caret); setMention(m); if (!m || m.query !== mention?.query) setMentionIndex(0); };
+  const pickPlugin = (name: string) => {
+    const el = textareaRef.current;
+    if (!mention || !el) return;
+    const next = insertMention(value, mention.start, el.selectionStart ?? value.length, name);
+    setValue(next.text); finalTranscriptRef.current = next.text; setMention(null);
+    requestAnimationFrame(() => { el.focus(); el.setSelectionRange(next.caret, next.caret); autoResize(); });
+  };
+
   const handleKeyDown = (e: KeyboardEvent) => {
+    if (mention && mentionMatches.length > 0) {
+      if (e.key === "ArrowDown") { e.preventDefault(); setMentionIndex((i) => (i + 1) % mentionMatches.length); return; }
+      if (e.key === "ArrowUp") { e.preventDefault(); setMentionIndex((i) => (i - 1 + mentionMatches.length) % mentionMatches.length); return; }
+      if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); pickPlugin(mentionMatches[Math.min(mentionIndex, mentionMatches.length - 1)].name); return; }
+      if (e.key === "Escape") { e.preventDefault(); setMention(null); return; }
+    }
     // On touch devices (mobile), Enter should insert a newline (default behavior).
     // Only submit on Enter when on a device with a real keyboard (fine pointer / hover).
     if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing) return;
@@ -242,7 +261,20 @@ const ChatInput = ({ toolName, onSend, onZipUpload, onFileConvert, onSendFiles, 
 
   return (
     <div className="w-full px-3 pb-3 pt-2 sm:px-4 sm:pb-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="relative max-w-2xl mx-auto">
+        {mention && mentionMatches.length > 0 && (
+          <div role="listbox" aria-label="Plugins" className="absolute bottom-full left-0 right-0 z-30 mb-2 max-h-64 overflow-y-auto rounded-2xl border border-border bg-popover p-1.5 text-popover-foreground shadow-lg">
+            <p className="px-3 pb-1 pt-1.5 text-xs font-medium text-muted-foreground">Plugins</p>
+            {mentionMatches.map((p, i) => (
+              <button key={p.name} type="button" role="option" aria-selected={i === mentionIndex}
+                onMouseDown={(e) => { e.preventDefault(); pickPlugin(p.name); }} onMouseEnter={() => setMentionIndex(i)}
+                className={cn("flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left", i === mentionIndex ? "bg-accent text-accent-foreground" : "hover:bg-accent/60")}>
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-secondary"><p.icon className="size-4" /></span>
+                <span className="min-w-0"><span className="block truncate text-sm font-medium">{p.name}</span><span className="block truncate text-xs text-muted-foreground">{p.description}</span></span>
+              </button>
+            ))}
+          </div>
+        )}
         <PromptInput onSubmit={() => handleSend()} className="[&_[data-slot=input-group]]:rounded-[24px] [&_[data-slot=input-group]]:bg-card [&_[data-slot=input-group]]:shadow-none [&_[data-slot=input-group]]:ring-0! [&_[data-slot=input-group]]:focus-within:border-foreground/20">
           {/* Attachments and pasted prompts: same look as in the sent message */}
           {(attachedImage || attachedFiles.length > 0 || pasted.length > 0) && (
@@ -277,7 +309,8 @@ const ChatInput = ({ toolName, onSend, onZipUpload, onFileConvert, onSendFiles, 
             <PromptInputTextarea
               ref={textareaRef}
               value={value}
-              onChange={(e) => { setValue(e.target.value); finalTranscriptRef.current = e.target.value; autoResize(); }}
+              onChange={(e) => { setValue(e.target.value); finalTranscriptRef.current = e.target.value; autoResize(); updateMention(e.target.value, e.target.selectionStart ?? e.target.value.length); }}
+              onBlur={() => setMention(null)}
               onKeyDown={handleKeyDown}
               onPaste={handlePaste}
               placeholder={`Ask Vision${animatedDots}`}
