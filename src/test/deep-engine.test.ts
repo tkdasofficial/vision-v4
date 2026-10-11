@@ -33,7 +33,7 @@ function fakeModel(o: { gen?: (n: number, m: ChatMsg[]) => CallResult; review?: 
 }
 
 const req = "Write 6 visual prompts for a story about a fox";
-const base = (extra: Partial<Parameters<typeof runDeepEngine>[0]> = {}) => ({ request: req, requestId: "req-00000001", analysis: analyzeRequest(req), baseSystem: "BASE", sleep: async () => {}, ...extra });
+const base = (extra: Partial<Parameters<typeof runDeepEngine>[0]> & { call: Parameters<typeof runDeepEngine>[0]["call"] }) => ({ request: req, requestId: "req-00000001", analysis: analyzeRequest(req), baseSystem: "BASE", sleep: async () => {}, ...extra });
 
 describe("Deep Thinking execution engine", () => {
   it("decomposes only multi-deliverable requests (simple questions skip it)", () => {
