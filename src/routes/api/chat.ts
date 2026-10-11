@@ -78,7 +78,7 @@ export const Route = createFileRoute("/api/chat")({
         }
         const fullMessages = [{ role: "system", content: system }, ...messages];
 
-        if (deepAnalysis?.complex && !lastHasMedia) {
+        if (deepAnalysis && !lastHasMedia) {
           const { runDeepPipeline } = await import("@/lib/ai/deep/pipeline");
           const { collectStream, sseChunk, sseDone, sseComment } = await import("@/lib/ai/deep/sse");
           const models = candidatesFor(task);
@@ -102,9 +102,10 @@ export const Route = createFileRoute("/api/chat")({
               const ping = setInterval(() => { try { ctrl.enqueue(sseComment("thinking")); } catch { /* closed */ } }, 8000);
               ctrl.enqueue(sseComment("thinking"));
               try {
-                const res = await runDeepPipeline({ messages: fullMessages as any, analysis: deepAnalysis!, call });
+                const t0 = Date.now();
+                const res = await runDeepPipeline({ messages: fullMessages as any, analysis: deepAnalysis!, call, request: lastText, plan: deepAnalysis!.complex || lastText.length > 400, review: true });
+                console.log("[chat:deep]", JSON.stringify({ user: caller.user.id, model: usedModel, ok: res.ok, stages: res.stages, corrections: res.ok ? res.corrections : 0, remaining: res.ok ? res.remaining.length : null, ms: Date.now() - t0 }));
                 if (res.ok) {
-                  console.log("[chat:deep]", usedModel, res.stages.join(">"), "remaining:", res.remaining.length);
                   for (let i = 0; i < res.text.length; i += 400) ctrl.enqueue(sseChunk(res.text.slice(i, i + 400)));
                 } else if (res.status !== 499) {
                   ctrl.enqueue(sseChunk(res.status === 429 ? "AI is busy right now. Please try again in a moment." : "Deep Thinking couldn't produce an answer right now — no result was generated. Please try again."));
@@ -126,7 +127,7 @@ export const Route = createFileRoute("/api/chat")({
               "X-Vision-Execution": task.executionMode,
               "X-Vision-Output": task.output,
               "X-Vision-Search": searchUsed,
-              "X-Vision-Deep": "verified",
+              "X-Vision-Deep": "pipeline",
             },
           });
         }
