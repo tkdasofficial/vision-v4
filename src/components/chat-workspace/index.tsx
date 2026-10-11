@@ -22,6 +22,8 @@ import { useBackgroundTasks, type BackgroundTask } from "@/hooks/useBackgroundTa
 import { supabase } from "@/lib/cloud/client";
 import { streamChat } from "@/lib/cloud/chat-stream";
 import { useAuth } from "@/context/AuthContext";
+import { readCachedPrefs } from "@/lib/settings";
+import { adoptDraftMode, browserStore, loadChatMode, saveChatMode } from "@/lib/chat-mode-store";
 
 type Props = {
   tool?: AITool;
@@ -52,6 +54,20 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
   const [thinkingPhase, setThinkingPhase] = useState<ThinkingPhase>("thinking");
   const [chatId, setChatId] = useState<string | null>(externalChatId || null);
   const [chatTitle, setChatTitle] = useState<string | null>(null);
+  // Mode belongs to the conversation: restored on open/reload, never reset after a reply.
+  // Incognito keeps it in memory only.
+  const [mode, setModeState] = useState<ChatMode>("default");
+  const modeLoadedFor = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (modeLoadedFor.current === chatId) return;
+    modeLoadedFor.current = chatId;
+    if (isIncognito) { if (chatId === null) setModeState(readCachedPrefs().defaultMode); return; }
+    setModeState(loadChatMode(browserStore(), chatId) ?? readCachedPrefs().defaultMode);
+  }, [chatId, isIncognito]);
+  const setMode = useCallback((m: ChatMode) => {
+    setModeState(m);
+    if (!isIncognito) saveChatMode(browserStore(), chatId, m);
+  }, [chatId, isIncognito]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { addChat, updateChatMessages } = useChatHistory();
   const { tasks: bgTasks, activeTasks, dispatch: dispatchBgTask } = useBackgroundTasks(chatId);
@@ -275,6 +291,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       const rawTitle = content.length > 100 ? content.slice(0, 100) : content;
       const title = rawTitle.length > 40 ? rawTitle.slice(0, 40) + "..." : rawTitle;
       const newId = addChat(title, content, tool?.id);
+      if (!isIncognito) adoptDraftMode(browserStore(), newId, taskMode ?? mode);
       sessionId = newId;
       setChatId(newId);
       setChatTitle(title);
@@ -410,7 +427,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       clearTimeout(phaseTimer);
       setIsTyping(false);
     }
-  }, [tool, chatId, addChat, messages, updateChatMessages, isIncognito]);
+  }, [tool, chatId, addChat, messages, updateChatMessages, isIncognito, mode]);
 
   /** Attached documents/data/audio plus an instruction → one backend agent task in this chat. */
   const handleSendFiles = useCallback(async (content: string, files: File[], extras?: { typed: string; pasted: PastedBlock[] }) => {
@@ -424,10 +441,11 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
     if (!isIncognito && !chatId) {
       const title = content.slice(0, 60) || files[0].name;
       sid = addChat(title, content.slice(0, 120), tool?.id);
+      adoptDraftMode(browserStore(), sid, mode);
       setChatId(sid); setChatTitle(title); onChatCreated?.(sid);
     }
     await runInlineJob("agent_task", { prompt: content }, sid, files);
-  }, [chatId, addChat, tool, isIncognito, runInlineJob]);
+  }, [chatId, addChat, tool, isIncognito, runInlineJob, mode]);
 
   const handleZipUpload = useCallback(async (file: File) => {
     const userMsg: ChatMessageType = {
@@ -446,6 +464,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
     if (!isIncognito && !chatId) {
       const title = `ZIP: ${file.name}`;
       const newId = addChat(title, `Uploaded ${file.name}`, tool?.id);
+      adoptDraftMode(browserStore(), newId, mode);
       zipSession = newId;
       setChatId(newId);
       setChatTitle(title);
@@ -468,7 +487,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       setMessages((prev) => [...prev.filter((m) => m.id !== msgId), { id: msgId, role: "assistant", content: `Couldn't analyze the ZIP: ${e.message}`, timestamp: new Date() }]);
     }
     setIsTyping(false);
-  }, [chatId, addChat, tool, isIncognito]);
+  }, [chatId, addChat, tool, isIncognito, mode]);
 
   const handleFileConvert = useCallback((file: File) => {
     const cat = getCategory(file);
@@ -487,6 +506,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
     if (!isIncognito && !chatId) {
       const title = `Convert: ${file.name}`;
       const newId = addChat(title, `Convert ${file.name}`, tool?.id);
+      adoptDraftMode(browserStore(), newId, mode);
       setChatId(newId);
       setChatTitle(title);
       onChatCreated?.(newId);
@@ -499,7 +519,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       timestamp: new Date(),
       convertFile: file,
     }]);
-  }, [chatId, addChat, tool, isIncognito]);
+  }, [chatId, addChat, tool, isIncognito, mode]);
 
   function formatBytes(bytes: number): string {
     if (bytes === 0) return "0 B";
@@ -562,7 +582,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
         )}
       </div>
 
-      <ChatInput toolName={tool?.shortName} onSend={handleSend} onZipUpload={handleZipUpload} onFileConvert={handleFileConvert} onSendFiles={handleSendFiles} disabled={isTyping} busy={isTyping || streaming || activeJobs.size > 0} onStop={handleStop} />
+      <ChatInput toolName={tool?.shortName} onSend={handleSend} onZipUpload={handleZipUpload} onFileConvert={handleFileConvert} onSendFiles={handleSendFiles} disabled={isTyping} busy={isTyping || streaming || activeJobs.size > 0} onStop={handleStop} mode={mode} onModeChange={setMode} />
     </div>
   );
 };
