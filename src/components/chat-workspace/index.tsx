@@ -22,6 +22,8 @@ import { useBackgroundTasks, type BackgroundTask } from "@/hooks/useBackgroundTa
 import { supabase } from "@/lib/cloud/client";
 import { streamChat } from "@/lib/cloud/chat-stream";
 import { useAuth } from "@/context/AuthContext";
+import { readCachedPrefs } from "@/lib/settings";
+import { adoptDraftMode, browserStore, loadChatMode, saveChatMode } from "@/lib/chat-mode-store";
 
 type Props = {
   tool?: AITool;
@@ -52,6 +54,20 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
   const [thinkingPhase, setThinkingPhase] = useState<ThinkingPhase>("thinking");
   const [chatId, setChatId] = useState<string | null>(externalChatId || null);
   const [chatTitle, setChatTitle] = useState<string | null>(null);
+  // Mode belongs to the conversation: restored on open/reload, never reset after a reply.
+  // Incognito keeps it in memory only.
+  const [mode, setModeState] = useState<ChatMode>("default");
+  const modeLoadedFor = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (modeLoadedFor.current === chatId) return;
+    modeLoadedFor.current = chatId;
+    if (isIncognito) { if (chatId === null) setModeState(readCachedPrefs().defaultMode); return; }
+    setModeState(loadChatMode(browserStore(), chatId) ?? readCachedPrefs().defaultMode);
+  }, [chatId, isIncognito]);
+  const setMode = useCallback((m: ChatMode) => {
+    setModeState(m);
+    if (!isIncognito) saveChatMode(browserStore(), chatId, m);
+  }, [chatId, isIncognito]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { addChat, updateChatMessages } = useChatHistory();
   const { tasks: bgTasks, activeTasks, dispatch: dispatchBgTask } = useBackgroundTasks(chatId);
@@ -275,6 +291,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       const rawTitle = content.length > 100 ? content.slice(0, 100) : content;
       const title = rawTitle.length > 40 ? rawTitle.slice(0, 40) + "..." : rawTitle;
       const newId = addChat(title, content, tool?.id);
+      if (!isIncognito) adoptDraftMode(browserStore(), newId, taskMode ?? mode);
       sessionId = newId;
       setChatId(newId);
       setChatTitle(title);
@@ -562,7 +579,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
         )}
       </div>
 
-      <ChatInput toolName={tool?.shortName} onSend={handleSend} onZipUpload={handleZipUpload} onFileConvert={handleFileConvert} onSendFiles={handleSendFiles} disabled={isTyping} busy={isTyping || streaming || activeJobs.size > 0} onStop={handleStop} />
+      <ChatInput toolName={tool?.shortName} onSend={handleSend} onZipUpload={handleZipUpload} onFileConvert={handleFileConvert} onSendFiles={handleSendFiles} disabled={isTyping} busy={isTyping || streaming || activeJobs.size > 0} onStop={handleStop} mode={mode} onModeChange={setMode} />
     </div>
   );
 };

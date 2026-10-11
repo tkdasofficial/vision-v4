@@ -23,20 +23,25 @@ type Props = {
   /** Something is running (reply or task); the send button turns into a spinning stop button. */
   busy?: boolean;
   onStop?: () => void;
+  /** Controlled mode for the current chat; it stays on until the user turns it off. */
+  mode?: ChatMode;
+  onModeChange?: (mode: ChatMode) => void;
 };
 
 const RemoveBtn = ({ label, onClick }: { label: string; onClick: () => void }) => (
   <button type="button" aria-label={label} onClick={onClick} className="absolute -right-2 -top-2 flex size-8 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm"><X className="size-4" /></button>
 );
 
-const ChatInput = ({ toolName, onSend, onZipUpload, onFileConvert, onSendFiles, disabled, busy, onStop }: Props) => {
+const ChatInput = ({ toolName, onSend, onZipUpload, onFileConvert, onSendFiles, disabled, busy, onStop, mode, onModeChange }: Props) => {
   const [value, setValue] = useState("");
   const [attachedImage, setAttachedImage] = useState<{ base64: string; mimeType: string; preview: string } | null>(null);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [pasted, setPasted] = useState<PastedBlock[]>([]);
-  const [taskMode, setTaskMode] = useState<ChatMode>("default");
-  // Start in the user's preferred default mode (Settings → AI Preferences).
-  useEffect(() => { setTaskMode(readCachedPrefs().defaultMode); }, []);
+  const [localMode, setLocalMode] = useState<ChatMode>("default");
+  // Uncontrolled fallback: start in the user's preferred default mode (Settings → AI Preferences).
+  useEffect(() => { if (mode === undefined) setLocalMode(readCachedPrefs().defaultMode); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const taskMode = mode ?? localMode;
+  const setTaskMode = onModeChange ?? setLocalMode;
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
   const finalTranscriptRef = useRef("");
