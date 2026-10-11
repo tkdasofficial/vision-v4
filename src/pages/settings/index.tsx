@@ -1,5 +1,5 @@
 import { useState, type ComponentType } from "react";
-import { Palette, Languages, Sparkles, MessagesSquare, Database, ShieldCheck, Accessibility, Bell, Info, User, Inbox, Crown, LayoutDashboard, HelpCircle, LifeBuoy, LogOut, ChevronRight, Pencil, ArrowLeft, Loader2 } from "lucide-react";
+import { Palette, Languages, Sparkles, MessagesSquare, Database, ShieldCheck, PersonStanding, Bell, Info, User, Inbox, Crown, LayoutDashboard, HelpCircle, LifeBuoy, LogOut, ChevronRight, Pencil, ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "@/lib/router-compat";
@@ -11,7 +11,7 @@ export const SETTINGS_CATEGORIES = [
   { to: "/settings/chat", icon: MessagesSquare, title: "Chat & History", desc: "Export or clear conversations" },
   { to: "/settings/privacy", icon: Database, title: "Privacy & Data", desc: "Your data, research documents and deletion" },
   { to: "/settings/security", icon: ShieldCheck, title: "Security", desc: "Password and two-step sign-in" },
-  { to: "/settings/accessibility", icon: Accessibility, title: "Accessibility", desc: "Motion, contrast and tap size" },
+  { to: "/settings/accessibility", icon: PersonStanding, title: "Accessibility", desc: "Motion, contrast and tap size" },
   { to: "/settings/notifications", icon: Bell, title: "Notifications", desc: "Browser alerts" },
   { to: "/settings/about", icon: Info, title: "About VISION", desc: "Version, help and legal" },
 ] as const;

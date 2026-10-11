@@ -6,7 +6,7 @@ import { useNavigate } from "@/lib/router-compat";
 import { securityStatusFn, changePasswordFn } from "@/lib/cloud/account-security.functions";
 import { SettingsPage, SettingsRow, SettingsSection } from "@/components/settings/settings-ui";
 
-const field = "h-14 w-full drawer-floating rounded-full px-5 text-sm outline-none focus:ring-2 focus:ring-ring";
+const field = "h-14 w-full drawer-floating rounded-full px-5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring";
 
 export default function Security() {
   const navigate = useNavigate();

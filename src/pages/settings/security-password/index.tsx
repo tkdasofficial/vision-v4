@@ -70,7 +70,7 @@ export default function ResetPasswordCode() {
   return (
     <SettingsPage title="Reset password">
 
-      <div className="w-full max-w-sm mx-auto flex flex-col gap-7 px-6 pt-4 pb-10">
+      <div className="w-full max-w-sm mx-auto flex flex-col gap-7 px-1 pt-4 pb-10 sm:px-6">
         <div className="space-y-2">
           <img src={logo} alt="Vision" className="w-12 h-12 rounded-2xl" />
           <h2 className="font-display text-2xl font-semibold text-foreground pt-4">{title}</h2>
@@ -81,7 +81,7 @@ export default function ResetPasswordCode() {
           {STEPS.map((s, i) => (
             <li key={s.id} className="flex flex-1 items-center gap-2">
               <span className={cn("w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-xs font-medium border",
-                i < idx ? "bg-primary text-foreground border-primary" : i === idx ? "border-foreground text-foreground" : "border-border text-muted-foreground")}>
+                i < idx ? "bg-primary text-primary-foreground border-primary" : i === idx ? "border-foreground text-foreground" : "border-border text-muted-foreground")}>
                 {i < idx ? <Check className="w-3.5 h-3.5" /> : i + 1}
               </span>
               <span className={cn("text-xs", i <= idx ? "text-foreground" : "text-muted-foreground")}>{s.label}</span>
@@ -106,7 +106,7 @@ export default function ResetPasswordCode() {
               <form onSubmit={verify} className="space-y-4">
                 <div className="flex justify-center">
                   <InputOTP maxLength={8} value={code} onChange={(v) => setCode(v.replace(/\D/g, ""))} autoFocus>
-                    <InputOTPGroup>{Array.from({ length: 8 }, (_, i) => <InputOTPSlot key={i} index={i} className="w-9 h-11" />)}</InputOTPGroup>
+                    <InputOTPGroup className="min-w-0 w-full">{Array.from({ length: 8 }, (_, i) => <InputOTPSlot key={i} index={i} className="min-w-0 w-9 flex-1 h-11" />)}</InputOTPGroup>
                   </InputOTP>
                 </div>
                 <Button variant="floating" disabled={busy || code.length !== 8} className={primary}>{busy && <Loader2 className="w-4 h-4 animate-spin" />}{busy ? "Checking…" : "Confirm code"}</Button>

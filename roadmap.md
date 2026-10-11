@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Audit Settings subpages; fix Accessibility icon, distorted toggles with larger tap targets, missing hints/status text, clipped accent choices and password-code spacing. 16 tests pass; actual page layouts checked with local preference fixtures in light/dark, keyboard toggles and scroll fade verified. Signed-in saving remains unverified without a session.
 - [x] Fix Settings back to AppDrawer and every Settings subpage back to main Settings; 13 settings tests pass and browser fixture verifies About → Settings → AppDrawer. Signed-in hosted flow remains unverified.
 - [x] Apply shared floating controls and bounded scroll-responsive transparent headers to all Settings subpages; preserve existing actions. Shared-control browser checks pass; signed-in actions remain unverified without a session.
 - [x] Float the Settings title and back button independently; reuse bounded scroll-responsive transparency with content passing underneath.

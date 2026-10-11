@@ -17,6 +17,10 @@
   --color-settings-canvas: hsl(var(--settings-canvas));
   --color-settings-surface: hsl(var(--settings-surface));
   --color-settings-divider: hsl(var(--settings-divider));
+  --color-swatch-blue: hsl(217 80% 50%);
+  --color-swatch-green: hsl(150 60% 36%);
+  --color-swatch-orange: hsl(24 90% 48%);
+  --color-swatch-rose: hsl(345 75% 50%);
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
@@ -215,7 +219,7 @@
 }
 .drawer-filter { background: var(--drawer-glass); border: 1px solid var(--drawer-edge); box-shadow: var(--drawer-shadow); }
 .drawer-filter:hover { background: hsl(var(--accent)); }
-.drawer-filter[data-state=active] { background: hsl(var(--foreground)); color: hsl(var(--background)); box-shadow: var(--drawer-shadow); }
+.drawer-filter[data-state=active], .drawer-filter[data-state=checked] { background: hsl(var(--foreground)); color: hsl(var(--background)); box-shadow: var(--drawer-shadow); }
 .drawer-top, .drawer-bottom { isolation: isolate; }
 .drawer-top::before, .drawer-bottom::before {
   content: "";

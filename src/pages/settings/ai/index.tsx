@@ -28,7 +28,7 @@ export default function AiPreferences() {
         <div className="space-y-3 px-1 py-2">
           <textarea value={draft} maxLength={MAX_INSTRUCTIONS} onChange={(e) => setDraft(e.target.value)} rows={5}
             aria-label="Custom instructions" placeholder="e.g. I'm a student. Explain with simple examples."
-            className="drawer-floating rounded-3xl px-5 py-4 w-full resize-none text-sm text-foreground outline-none placeholder:text-muted-foreground" />
+            className="drawer-floating rounded-3xl px-5 py-4 w-full resize-none text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring placeholder:text-muted-foreground" />
           <div className="mt-2 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">{draft.length}/{MAX_INSTRUCTIONS}</span>
             <div className="flex gap-2">
