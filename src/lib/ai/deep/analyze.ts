@@ -52,9 +52,9 @@ export function analyzeRequest(text: string): RequestAnalysis {
 
   // "4, 6, 8, or 10 second clips" / "4/6/8/10s"
   let allowedDurations: number[] | null = null;
-  const list = /\b(\d{1,2}(?:\s*(?:,|\/|or|and)\s*\d{1,2}){1,7})\s*[- ]?(?:s|sec|secs|seconds?)\b/i.exec(t);
+  const list = /\b(\d{1,2}(?:\s*(?:,\s*(?:or|and)?|\/|or|and)\s*\d{1,2}){1,7})\s*[- ]?(?:s|sec|secs|seconds?)\b/i.exec(t);
   if (list) {
-    const vals = [...new Set(list[1].split(/\s*(?:,|\/|or|and)\s*/i).map(Number).filter((n) => n > 0))].sort((a, b) => a - b);
+    const vals = [...new Set(list[1].split(/\s*(?:,\s*(?:or|and)?|\/|or|and)\s*/i).map(Number).filter((n) => n > 0))].sort((a, b) => a - b);
     if (vals.length >= 2) allowedDurations = vals;
   }
 
