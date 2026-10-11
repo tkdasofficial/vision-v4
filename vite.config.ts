@@ -18,15 +18,18 @@ export default defineConfig({
   },
   vite: {
     plugins: [
-      VitePWA({
+      // Only the browser build gets a service worker; it is written next to the public files.
+      ...VitePWA({
         strategies: "generateSW",
         registerType: "autoUpdate",
         injectRegister: null, // registration happens only in src/lib/pwa.ts
         devOptions: { enabled: false },
         manifest: false,
         filename: "sw.js",
+        outDir: "dist/client",
         workbox: {
           // Versioned app files (hashed names) are precached; Workbox keeps the old cache until the new one is complete.
+          globDirectory: "dist/client",
           globPatterns: ["**/*.{js,css,woff,woff2,svg,png,ico}"],
           maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
           cleanupOutdatedCaches: true,
@@ -62,7 +65,7 @@ export default defineConfig({
             },
           ],
         },
-      }),
+      }).map((p) => ({ ...p, applyToEnvironment: (env: { name: string }) => env.name === "client" })),
     ],
   },
 });
