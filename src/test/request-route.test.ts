@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { routeRequest } from "@/lib/ai/request-route";
 
 const STORY_BRIEF = `Analyze the following story carefully and convert it into a complete, chronologically accurate sequence of image-to-video generation prompts.
@@ -33,10 +33,8 @@ describe("request routing", () => {
   it("building a website is a project", () => {
     expect(routeRequest("build a landing page for my bakery").kind).toBe("project");
   });
-  it("the uploaded brief, if present, gets a written answer", () => {
-    try {
-      const text = readFileSync("/mnt/user-uploads/Analyze_the_following_story_carefully_and_pasted.md", "utf8");
-      expect(routeRequest(text, "default").kind).toBe("chat");
-    } catch { /* upload not available in this environment */ }
+  const UPLOAD = "/mnt/user-uploads/Analyze_the_following_story_carefully_and_pasted.md";
+  it.skipIf(!existsSync(UPLOAD))("the user's real pasted brief gets a written answer", () => {
+    expect(routeRequest(readFileSync(UPLOAD, "utf8"), "default").kind).toBe("chat");
   });
 });
