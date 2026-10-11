@@ -66,7 +66,68 @@ export const Route = createFileRoute("/api/chat")({
             system += `\n\n${sourcesBlock(s.results)}`;
           } catch (e) { console.error("[search]", e); system += "\n\nLive web search was unavailable; say so in the answer."; }
         }
+        // Deep Thinking Mode: deterministic analysis; complex requests go through the bounded verify/correct pipeline.
+        let deepAnalysis: import("@/lib/ai/deep/analyze").RequestAnalysis | null = null;
+        if (task.executionMode === "deep") {
+          const { analyzeRequest } = await import("@/lib/ai/deep/analyze");
+          const { planAddendum } = await import("@/lib/ai/deep/pipeline");
+          deepAnalysis = analyzeRequest(lastText);
+          system += planAddendum(deepAnalysis);
+        }
         const fullMessages = [{ role: "system", content: system }, ...messages];
+
+        if (deepAnalysis?.complex && !lastHasMedia) {
+          const { runDeepPipeline } = await import("@/lib/ai/deep/pipeline");
+          const { collectStream, sseChunk, sseDone, sseComment } = await import("@/lib/ai/deep/sse");
+          const models = candidatesFor(task);
+          let usedModel = "";
+          const call = async (msgs: unknown[]) => {
+            let last: { ok: false; status: number; reason: string } = { ok: false, status: 502, reason: "no model" };
+            for (const t of models) {
+              const r = await streamFromProvider(t, msgs, { maxTokens: 8192, deep: true }, request.signal);
+              if (r.ok) {
+                try { const c = await collectStream(r.body); usedModel = t.label; return { ok: true as const, ...c }; }
+                catch (e: any) { last = { ok: false, status: request.signal.aborted ? 499 : 502, reason: e?.message ?? "stream error" }; continue; }
+              }
+              last = { ok: false, status: r.status, reason: r.reason };
+              if (r.status === 499) return last;
+              console.error("[chat:deep]", t.provider, t.model, r.status, r.reason);
+            }
+            return last;
+          };
+          const stream = new ReadableStream<Uint8Array>({
+            async start(ctrl) {
+              const ping = setInterval(() => { try { ctrl.enqueue(sseComment("thinking")); } catch { /* closed */ } }, 8000);
+              ctrl.enqueue(sseComment("thinking"));
+              try {
+                const res = await runDeepPipeline({ messages: fullMessages as any, analysis: deepAnalysis!, call });
+                if (res.ok) {
+                  console.log("[chat:deep]", usedModel, res.stages.join(">"), "remaining:", res.remaining.length);
+                  for (let i = 0; i < res.text.length; i += 400) ctrl.enqueue(sseChunk(res.text.slice(i, i + 400)));
+                } else if (res.status !== 499) {
+                  ctrl.enqueue(sseChunk(res.status === 429 ? "AI is busy right now. Please try again in a moment." : "Deep Thinking couldn't produce an answer right now — no result was generated. Please try again."));
+                }
+              } catch (e) {
+                console.error("[chat:deep]", e);
+                ctrl.enqueue(sseChunk("Deep Thinking stopped because of an internal error — no verified answer was produced."));
+              } finally {
+                clearInterval(ping);
+                try { ctrl.enqueue(sseDone()); ctrl.close(); } catch { /* closed */ }
+              }
+            },
+          });
+          return new Response(stream, {
+            headers: {
+              "Content-Type": "text/event-stream",
+              "Cache-Control": "no-store",
+              "X-Vision-Model": models[0]?.label ?? "",
+              "X-Vision-Execution": task.executionMode,
+              "X-Vision-Output": task.output,
+              "X-Vision-Search": searchUsed,
+              "X-Vision-Deep": "verified",
+            },
+          });
+        }
 
         let lastStatus = 502;
         for (const t of candidatesFor(task)) {
