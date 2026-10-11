@@ -330,7 +330,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
 
     // Designer mode: detect if it's a UI/web design request vs image generation
     const isUIDesign = false && /\b(ui|ux|website|web\s*app|mobile\s*app|landing\s*page|dashboard|layout|wireframe|mockup|prototype|interface|screen|page\s*design|app\s*design|redesign)\b/i.test(content);
-    const isImageGen = tool?.id === "image-generator" || /\b(generate|create|make|draw|design)\b.*\b(image|picture|photo|illustration|graphic|visual|thumbnail|art|logo|icon|banner|poster|flyer|infographic|meme)\b/i.test(content);
+    const isImageGen = tool?.id === "image-generator" || isImageGenerationRequest(content);
     const detectedRatio = detectAspectRatio(content);
     const isImageToImage = imageData && isImageGen;
 
