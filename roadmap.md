@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Rebuild Settings with a horizontal profile section, neutral grouped rows and compact scrolling header; preserve every existing action.
 - [x] Remove the visible search header band; content scrolls beneath independently floating controls with a subtle scroll-responsive fade. 62 tests pass; desktop/mobile visual checks confirm transparent rest state and fade on scroll using fixture content. Signed-in results remain unverified without a session.
 - [x] Fix search transparency covering results and give each filter its own floating glass surface. Fade bounded to the 144px header in browser checks; 62 tests pass. Signed-in results remain unverified without a session.
 - [x] Make AppDrawer a protected page with an inline search header, filters below it, and a back button returning to navigation. 62 tests pass; desktop/mobile component browser checks confirm header replacement, 12px top gap, filter selection, clearing and back. Signed-in search results remain unverified without a session.
