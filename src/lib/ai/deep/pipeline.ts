@@ -8,7 +8,7 @@ export type ChatMsg = { role: "system" | "user" | "assistant"; content: unknown 
 export type CallResult = { ok: true; text: string; finishReason: string | null } | { ok: false; status: number; reason: string };
 export type ModelCall = (messages: ChatMsg[]) => Promise<CallResult>;
 
-export const DEEP_LIMITS = { maxCorrections: 2, maxContinuations: 3, budgetMs: 100_000 };
+export const DEEP_LIMITS = { maxCorrections: 2, maxContinuations: 3, budgetMs: 150_000 };
 
 export type DeepResult =
   | { ok: true; text: string; remaining: Issue[]; corrections: number; continuations: number; stages: string[] }
@@ -38,22 +38,56 @@ export function planAddendum(a: RequestAnalysis): string {
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
+export const REVIEW_SYSTEM = "You are a strict, independent reviewer. You check a draft answer against the user's request before it is shown. Check: does it answer exactly what was asked (task, format, count, length, constraints)? Are facts, numbers, calculations, code and logic correct? Are claims presented as certain that are only assumptions? Is anything required missing? Reply with exactly the single word PASS if there are no real problems. Otherwise reply with a line 'ISSUES:' followed by one '- ' bullet per concrete problem. Do not rewrite the answer.";
+
+/** Parses a reviewer verdict. Anything that is not a clear PASS with no bullets counts as issues. */
+export function parseReview(text: string): { pass: boolean; issues: string[] } {
+  const t = text.trim();
+  const bullets = t.split("\n").map((l) => l.trim()).filter((l) => /^[-*•]\s+/.test(l)).map((l) => l.replace(/^[-*•]\s+/, "").trim()).filter(Boolean);
+  if (/^\**PASS\**\.?$/i.test(t) || (/^\**PASS\b/i.test(t) && !bullets.length && !/ISSUES/i.test(t))) return { pass: true, issues: [] };
+  return { pass: false, issues: bullets.length ? bullets.slice(0, 8) : [t.slice(0, 300) || "Reviewer returned no verdict"] };
+}
+
+const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n)}\n…[truncated]` : s);
+
 export async function runDeepPipeline(opts: {
   messages: ChatMsg[];
   analysis: RequestAnalysis;
   call: ModelCall;
   limits?: Partial<typeof DEEP_LIMITS>;
   now?: () => number;
+  /** Latest user request, used by the hidden plan and review passes. */
+  request?: string;
+  /** Run a hidden planning pass before the answer (complex requests). */
+  plan?: boolean;
+  /** Run the independent model review loop after deterministic checks. */
+  review?: boolean;
 }): Promise<DeepResult> {
   const L = { ...DEEP_LIMITS, ...opts.limits };
   const now = opts.now ?? Date.now;
   const start = now();
   const stages: string[] = [];
   const overBudget = () => now() - start > L.budgetMs;
+  const request = opts.request ?? "";
+  let messages = opts.messages;
+
+  // 0. Hidden plan: analyze the task and outline the solution; never shown to the user.
+  if (opts.plan && request) {
+    stages.push("plan");
+    const p = await opts.call([
+      { role: "system", content: "Analyze the user's request before anyone answers it. Output a concise internal plan: the exact task, required format/length/counts, constraints, sub-problems in order, facts or calculations to double-check, and likely pitfalls. Do not write the answer." },
+      { role: "user", content: clip(request, 20000) },
+    ]);
+    if (p.ok && p.text.trim()) {
+      const [sys, ...rest] = messages;
+      const note = `\n\nInternal plan (hidden from the user; follow it, do not mention it):\n${clip(p.text.trim(), 6000)}`;
+      messages = sys?.role === "system" ? [{ ...sys, content: `${String(sys.content)}${note}` }, ...rest] : [{ role: "system", content: note }, ...messages];
+    } else stages.push("plan-failed");
+  }
 
   // 1. Candidate
   stages.push("generate");
-  const first = await opts.call(opts.messages);
+  const first = await opts.call(messages);
   if (!first.ok) return { ok: false, status: first.status, reason: first.reason, stages };
   let text = first.text;
   let finish = first.finishReason;
@@ -63,32 +97,59 @@ export async function runDeepPipeline(opts: {
   while (finish === "length" && continuations < L.maxContinuations && !overBudget()) {
     continuations++;
     stages.push("continue");
-    const r = await opts.call([...opts.messages, { role: "assistant", content: text },
+    const r = await opts.call([...messages, { role: "assistant", content: text },
       { role: "user", content: "Continue exactly where you stopped. Do not repeat anything already written and keep the same numbering and format." }]);
     if (!r.ok) break;
     text += r.text;
     finish = r.finishReason;
   }
 
-  // 3. Validate → bounded correction → revalidate.
+  const review = async (): Promise<Issue[] | null> => {
+    stages.push("review");
+    const r = await opts.call([
+      { role: "system", content: REVIEW_SYSTEM },
+      { role: "user", content: `User request:\n${clip(request, 12000)}\n\nDraft answer:\n${clip(text, 30000)}` },
+    ]);
+    if (!r.ok) { stages.push("review-failed"); return null; }
+    const v = parseReview(r.text);
+    return v.issues.map((m) => ({ code: "review", message: m } as Issue));
+  };
+
+  // 3. Deterministic validation + independent review → bounded correction → revalidate.
   stages.push("validate");
   let issues = validateCandidate(text, opts.analysis, finish);
+  let reviewRan = false;
+  let reviewUnavailable = false;
+  if (opts.review && !issues.some((i) => i.code !== "truncated") && !overBudget()) {
+    const r = await review();
+    if (r) { reviewRan = true; issues = [...issues, ...r]; } else reviewUnavailable = true;
+  }
   let corrections = 0;
   while (issues.some((i) => i.code !== "truncated") && corrections < L.maxCorrections && !overBudget()) {
     corrections++;
     stages.push("correct");
-    const r = await opts.call([...opts.messages, { role: "assistant", content: text },
+    const r = await opts.call([...messages, { role: "assistant", content: text },
       { role: "user", content: `Automatic verification found these problems in your answer:\n- ${issues.map((i) => i.message).join("\n- ")}\nReturn the complete corrected answer only (not a diff, no commentary about the correction). Keep everything that was already correct.` }]);
     if (!r.ok) break;
-    const next = validateCandidate(r.text, opts.analysis, r.finishReason);
+    let next = validateCandidate(r.text, opts.analysis, r.finishReason);
     stages.push("revalidate");
-    if (next.length <= issues.length) { text = r.text; issues = next; }
+    const prevDet = issues.filter((i) => i.code !== "review").length;
+    if (next.length <= prevDet) {
+      text = r.text;
+      if (opts.review && !next.some((i) => i.code !== "truncated") && !overBudget()) {
+        const rv = await review();
+        if (rv) next = [...next, ...rv]; else reviewUnavailable = true;
+      }
+      issues = next;
+    }
     if (!issues.length) break;
   }
 
-  // 4. Honest disclosure of anything still unresolved.
+  // 4. Honest disclosure of anything still unresolved or unchecked.
   if (issues.length) {
-    text += `\n\n> **Verification note:** some requirements could not be confirmed after ${corrections} correction attempt(s):\n${issues.map((i) => `> - ${i.message}`).join("\n")}`;
+    text += `\n\n> **Verification note:** some points could not be confirmed after ${corrections} correction attempt(s):\n${issues.map((i) => `> - ${i.message}`).join("\n")}`;
+  } else if (opts.review && (!reviewRan || reviewUnavailable)) {
+    text += "\n\n> **Verification note:** the independent review step could not run for this answer, so only the automatic checks were applied.";
   }
   return { ok: true, text, remaining: issues, corrections, continuations, stages };
 }
