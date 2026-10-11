@@ -8,6 +8,7 @@ import { useCopy } from "@/components/chat/use-copy";
 import CodeSource from "@/components/chat/code-source";
 import PreviewPane from "@/components/chat/preview-pane";
 import { cn } from "@/lib/utils";
+import { codeLanguageLabel } from "@/lib/code-language-label";
 
 type Props = { code: string; language?: string; filename?: string; html?: string; previewHTML?: string; iframeRef?: Ref<HTMLIFrameElement>; initialView?: "code" | "preview" | "split"; onClose: () => void };
 const MIN = 8, MAX = 32, BASE = 13;
@@ -50,16 +51,19 @@ export default function FullScreenCodeView({ code, language, filename, previewHT
 
   return <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}><DialogPortal>
     <DialogPrimitive.Overlay className="fixed inset-0 z-[9999] bg-background" />
-    <DialogPrimitive.Content aria-describedby={undefined} className="fixed inset-0 z-[10000] flex min-w-0 flex-col bg-background text-foreground outline-none pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]" onKeyDown={(e) => {
+    <DialogPrimitive.Content aria-describedby={undefined} className="code-canvas code-viewer fixed inset-0 z-[10000] flex h-dvh min-w-0 flex-col text-foreground outline-none pb-[env(safe-area-inset-bottom)] md:pt-[env(safe-area-inset-top)]" onKeyDown={(e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") { e.preventDefault(); setView(view === "preview" ? "code" : view); setSearchOpen(true); }
     }}>
-      <header className="flex min-h-14 shrink-0 items-center gap-1 border-b border-border px-2">
-        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Back" title="Back to chat"><ArrowLeft /></Button>
-        <DialogTitle className="min-w-0 flex-1 truncate px-1 font-mono text-sm font-medium">{name}</DialogTitle>
-        <Button variant="ghost" size="icon" onClick={() => downloadText(code, name)} aria-label={`Download ${name}`} title="Download file"><Download /></Button>
-        <Button variant="ghost" size="icon" onClick={() => copy(code)} aria-label={copied ? "Copied" : "Copy"} title={copied ? "Copied" : "Copy code"}>{copied ? <Check /> : <Copy />}</Button>
+      <header className="code-viewer-header absolute inset-x-0 top-0 z-10 grid min-h-16 grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-1 px-2 pb-4 pt-[max(8px,env(safe-area-inset-top))] md:static md:flex md:min-h-14 md:shrink-0 md:items-center md:border-b md:border-border md:py-1">
+        <Button variant="ghost" size="icon" className="code-viewer-action shrink-0 rounded-full md:rounded-md" onClick={onClose} aria-label="Back" title="Back to chat"><ArrowLeft /></Button>
+        <DialogTitle aria-label={name} className="min-w-0 truncate px-1 pt-2.5 font-mono text-sm font-medium md:flex-1 md:pt-0"><span className="md:hidden">{codeLanguageLabel(language)}</span><span className="hidden md:inline">{name}</span></DialogTitle>
+        <div className="flex shrink-0 gap-1">
+          <Button variant="ghost" size="icon" className="code-viewer-action rounded-full md:hidden" disabled={!preview} aria-label={view === "preview" ? "Show code" : "Preview"} title={view === "preview" ? "Show code" : "Preview"} aria-pressed={view === "preview"} onClick={() => setView(view === "preview" ? "code" : "preview")}>{view === "preview" ? <Code2 /> : <Eye />}</Button>
+          <Button variant="ghost" size="icon" className="code-viewer-action rounded-full md:rounded-md" onClick={() => downloadText(code, name)} aria-label={`Download ${name}`} title="Download file"><Download /></Button>
+          <Button variant="ghost" size="icon" className="code-viewer-action rounded-full md:rounded-md" onClick={() => copy(code)} aria-label={copied ? "Copied" : "Copy"} title={copied ? "Copied" : "Copy code"}>{copied ? <Check /> : <Copy />}</Button>
+        </div>
       </header>
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-1 border-b border-border bg-muted/30 px-2 py-1.5">
+      <div className="hidden shrink-0 flex-wrap items-center justify-between gap-1 border-b border-border bg-muted/30 px-2 py-1.5 md:flex">
         <div className="flex items-center gap-1" aria-label="Code view layout">{([{ value: "code", Icon: Code2 }, { value: "preview", Icon: Eye }, { value: "split", Icon: Columns2 }] as const).map(({ value, Icon }) => <Button key={value} variant="ghost" size="icon" className={cn("size-8 rounded-md", view === value && "bg-accent")} disabled={value !== "code" && !preview} aria-label={`${value} view`} title={`${value} view`} aria-pressed={view === value} onClick={() => setView(value)}><Icon /></Button>)}</div>
         {view !== "preview" && <div className="flex flex-wrap items-center gap-1">
           <Button variant="ghost" size="icon" className="size-8 rounded-md" aria-label="Find in code" title="Find in code" aria-pressed={searchOpen} onClick={() => setSearchOpen((open) => !open)}><Search /></Button>
@@ -70,7 +74,7 @@ export default function FullScreenCodeView({ code, language, filename, previewHT
           <Button variant="ghost" size="icon" className="size-8 rounded-md" onClick={() => setSize((s) => clamp(s + 1))} disabled={size >= MAX} aria-label="Zoom in" title="Zoom in"><ZoomIn /></Button>
         </div>}
       </div>
-      {searchOpen && view !== "preview" && <div className="flex shrink-0 items-center gap-1 border-b border-border px-3 py-2">
+      {searchOpen && view !== "preview" && <div className="hidden shrink-0 items-center gap-1 border-b border-border px-3 py-2 md:flex">
         <Search className="size-4 shrink-0 text-muted-foreground" />
         <input ref={searchInput} aria-label="Search code" placeholder="Find in code…" value={query} onChange={(e) => { setQuery(e.target.value); setMatchIndex(0); }} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); moveMatch(e.shiftKey ? -1 : 1); } }} className="h-8 min-w-0 flex-1 bg-transparent text-sm outline-none" />
         <span role="status" className="shrink-0 text-xs text-muted-foreground">{query ? matches.length ? `${matchIndex % matches.length + 1} / ${matches.length} lines` : "No matches" : ""}</span>
@@ -78,11 +82,11 @@ export default function FullScreenCodeView({ code, language, filename, previewHT
         <Button variant="ghost" size="icon" className="size-8" aria-label="Next match" title="Next match" disabled={!matches.length} onClick={() => moveMatch(1)}><ChevronDown /></Button>
         <Button variant="ghost" size="icon" className="size-8" aria-label="Close search" title="Close search" onClick={() => { setSearchOpen(false); setQuery(""); }}><X /></Button>
       </div>}
-      <div className={cn("grid min-h-0 flex-1", view === "split" ? "grid-rows-2 md:grid-cols-2 md:grid-rows-1" : "grid-cols-1")}>
-        {view !== "preview" && <div ref={area} aria-label="Code content" tabIndex={0} className="min-h-0 min-w-0 overflow-auto overscroll-contain focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"><CodeSource code={code} language={language} size={size} wrap={wrap} lineNumbers={numbers} query={query} activeLine={activeLine} /></div>}
+      <div className={cn("grid min-h-0 flex-1 pt-[max(64px,calc(env(safe-area-inset-top)+56px))] md:pt-0", view === "split" ? "grid-rows-2 md:grid-cols-2 md:grid-rows-1" : "grid-cols-1")}>
+        {view !== "preview" && <div ref={area} aria-label="Code content" tabIndex={0} className="mobile-code-source min-h-0 min-w-0 overflow-auto overscroll-contain focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"><CodeSource code={code} language={language} size={size} wrap={wrap} lineNumbers={numbers} query={query} activeLine={activeLine} /></div>}
         {view !== "code" && preview && <div className="min-h-0 min-w-0 border-t border-border md:border-l md:border-t-0"><PreviewPane html={preview} iframeRef={iframeRef} title={`${name} preview`} /></div>}
       </div>
-      <footer className="flex h-8 shrink-0 items-center justify-between gap-2 border-t border-border px-3 font-mono text-[11px] text-muted-foreground"><span className="truncate">{language || "Plain text"} · {code.split("\n").length} lines</span><span className="shrink-0">{new TextEncoder().encode(code).length.toLocaleString()} bytes</span></footer>
+       <footer className="hidden h-8 shrink-0 items-center justify-between gap-2 border-t border-border px-3 font-mono text-[11px] text-muted-foreground md:flex"><span className="truncate">{language || "Plain text"} · {code.split("\n").length} lines</span><span className="shrink-0">{new TextEncoder().encode(code).length.toLocaleString()} bytes</span></footer>
     </DialogPrimitive.Content>
   </DialogPortal></Dialog>;
 }
