@@ -60,7 +60,7 @@ export default function PrivacyData() {
                   <p className="truncate text-sm font-medium">{d.title}</p>
                   <p className="text-xs text-muted-foreground">{new Date(d.createdAt).toLocaleDateString()}</p>
                 </Link>
-                <Button variant="floating" aria-label={`Delete ${d.title}`} onClick={() => setConfirm(d.id)} size="icon" className="size-9 rounded-full text-destructive hover:bg-destructive/10"><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                <Button variant="floating" aria-label={`Delete ${d.title}`} onClick={() => setConfirm(d.id)} size="icon" className="size-11 shrink-0 rounded-full text-destructive hover:bg-destructive/10"><Trash2 className="w-4 h-4 text-destructive" /></Button>
               </div>
             ))}
             <Button variant="floating" onClick={() => setConfirm("all")} className="rounded-full text-sm text-destructive px-4">Delete all documents</Button>

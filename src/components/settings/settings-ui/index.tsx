@@ -1,4 +1,6 @@
-import { useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
+import * as SwitchPrimitive from "@radix-ui/react-switch";
+import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "@/lib/router-compat";
@@ -10,9 +12,9 @@ export function SettingsPage({ title, children, loading }: { title: string; chil
   const [scrolled, setScrolled] = useState(false);
   return (
     <div className="app-drawer relative grid h-[100dvh] grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden bg-settings-canvas text-foreground" data-scrolled={scrolled}>
-      <header className="drawer-top relative z-10 col-start-1 row-start-1 self-start px-4 pb-5 pt-[max(12px,env(safe-area-inset-top))] sm:px-8">
+      <header className="drawer-top pointer-events-none relative z-10 col-start-1 row-start-1 self-start px-4 pb-5 pt-[max(12px,env(safe-area-inset-top))] sm:px-8">
         <div className="mx-auto grid h-11 max-w-xl grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-2">
-          <Button variant="floating" size="icon" className="size-11 rounded-full [&_svg]:size-5" aria-label="Back" title="Back" onClick={() => navigate("/settings")}><ArrowLeft /></Button>
+          <Button variant="floating" size="icon" className="pointer-events-auto size-11 rounded-full [&_svg]:size-5" aria-label="Back" title="Back" onClick={() => navigate("/settings")}><ArrowLeft /></Button>
           <h1 className="drawer-floating flex h-11 min-w-0 max-w-full items-center justify-center justify-self-center rounded-full px-4 text-center font-display text-lg font-semibold sm:px-6 sm:text-xl"><span className="truncate">{title}</span></h1>
           <span aria-hidden="true" />
         </div>
@@ -29,8 +31,8 @@ export function SettingsPage({ title, children, loading }: { title: string; chil
 export function SettingsSection({ title, description, children }: { title: string; description?: string; children?: ReactNode }) {
   return (
     <section>
-      {description && !children && <p className="px-5 text-sm text-muted-foreground">{description}</p>}
-       {children && <div className="space-y-1.5" aria-label={title}>{children}</div>}
+      {description && <p className="mb-3 px-5 text-xs leading-relaxed text-muted-foreground">{description}</p>}
+      {children && <div className="space-y-1.5" aria-label={title}>{children}</div>}
     </section>
   );
 }
@@ -38,23 +40,29 @@ export function SettingsSection({ title, description, children }: { title: strin
 export function SettingsRow({ label, hint, children, className }: { label: string; hint?: string; children?: ReactNode; className?: string }) {
   return (
     <div className={cn("drawer-floating flex items-center justify-between gap-3 rounded-full px-5 py-3 min-h-12", className)}>
-      <p className="min-w-0 text-sm font-medium text-foreground">{label}</p>
-      {children}
+      <div className="min-w-0 flex-1">
+        <p className="break-words text-sm font-medium text-foreground">{label}</p>
+        {hint && <p className="mt-0.5 break-words text-xs leading-relaxed text-muted-foreground">{hint}</p>}
+      </div>
+      {children && <div className="flex min-w-0 max-w-[65%] items-center justify-end">{children}</div>}
     </div>
   );
 }
 
 export function SettingsToggle({ label, hint, checked, onChange, disabled }: { label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+  const hintId = useId();
   return (
-    <SettingsRow label={label} hint={hint}>
-      <Button variant="ghost"
-        type="button" role="switch" aria-checked={checked} aria-label={label} disabled={disabled}
-        onClick={() => onChange(!checked)}
-        className={cn("w-11 h-6 shrink-0 rounded-full p-0 transition-colors relative disabled:opacity-50", checked ? "bg-primary hover:bg-primary" : "bg-muted hover:bg-muted")}
-      >
-        <span className={cn("w-4 h-4 rounded-full bg-background absolute top-1 transition-all", checked ? "left-6" : "left-1")} />
+    <SwitchPrimitive.Root asChild checked={checked} onCheckedChange={onChange} disabled={disabled} aria-label={label} aria-describedby={hint ? hintId : undefined}>
+      <Button variant="floating" type="button" className="h-auto min-h-14 w-full justify-between gap-4 whitespace-normal rounded-full px-5 py-3 text-left">
+        <span className="min-w-0 flex-1">
+          <span className="block break-words text-sm font-medium">{label}</span>
+          {hint && <span id={hintId} className="mt-0.5 block break-words text-xs font-normal leading-relaxed text-muted-foreground">{hint}</span>}
+        </span>
+        <span aria-hidden="true" className={cn("inline-flex h-6 w-11 shrink-0 items-center rounded-full p-1 transition-colors motion-reduce:transition-none", checked ? "bg-primary" : "bg-input")}>
+          <SwitchPrimitive.Thumb className={cn("block size-4 rounded-full bg-primary-foreground shadow-sm transition-transform motion-reduce:transition-none", checked ? "translate-x-5" : "translate-x-0 bg-foreground")} />
+        </span>
       </Button>
-    </SettingsRow>
+    </SwitchPrimitive.Root>
   );
 }
 
@@ -65,15 +73,14 @@ export function SettingsChoice<T extends string>({ label, hint, value, options, 
   return (
     <div className="px-1 py-2">
       <p className="px-4 text-sm font-medium text-foreground">{label}</p>
-      
-      <div role="radiogroup" aria-label={label} className="mt-3 flex flex-wrap gap-2">
+      {hint && <p className="mt-1 px-4 text-xs text-muted-foreground">{hint}</p>}
+      <RadioGroupPrimitive.Root value={value} onValueChange={(next) => { const option = options.find((o) => o.value === next); if (option) onChange(option.value); }} aria-label={label} className="mt-3 flex flex-wrap gap-2">
         {options.map((o) => (
-          <Button variant="floating"
-            key={o.value} type="button" role="radio" aria-checked={value === o.value} data-state={value === o.value ? "active" : "inactive"} onClick={() => onChange(o.value)}
-            className="drawer-filter h-10 shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm"
-          >{o.label}</Button>
+          <RadioGroupPrimitive.Item key={o.value} value={o.value} asChild>
+            <Button variant="floating" type="button" className="drawer-filter h-auto min-h-11 min-w-0 max-w-full whitespace-normal rounded-full px-4 py-2 text-sm">{o.label}</Button>
+          </RadioGroupPrimitive.Item>
         ))}
-      </div>
+      </RadioGroupPrimitive.Root>
     </div>
   );
 }
