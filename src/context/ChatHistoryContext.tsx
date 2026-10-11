@@ -95,12 +95,10 @@ function stableRowId(sessionId: string, localId: string): string {
 function buildMetadata(msg: ChatMessage): Record<string, any> {
   const meta: Record<string, any> = {};
   if (msg.toolId) meta.toolId = msg.toolId;
-  if (msg.videos) meta.videos = msg.videos;
-  if (msg.videoGeneration) meta.videoGeneration = msg.videoGeneration;
-  if (msg.videoEdit) meta.videoEdit = msg.videoEdit;
   if (msg.webApp) meta.webApp = msg.webApp;
   if (msg.document) meta.document = msg.document;
   if (msg.executionMode) meta.executionMode = msg.executionMode;
+  if (msg.deep?.done) meta.deep = { stage: "done", seconds: msg.deep.seconds };
   if (msg.pasted?.length) meta.pasted = msg.pasted;
   if (msg.typed !== undefined) meta.typed = msg.typed;
   if (msg.attachments?.length) meta.attachments = msg.attachments;
@@ -117,12 +115,10 @@ function rowToMessage(row: any): ChatMessage {
     timestamp: new Date(row.created_at),
     imageUrl: row.image_url || undefined,
     toolId: meta.toolId,
-    videos: meta.videos,
-    videoGeneration: meta.videoGeneration,
-    videoEdit: meta.videoEdit,
     webApp: meta.webApp,
     document: meta.document,
     executionMode: meta.executionMode,
+    deep: meta.deep ? { stage: "done", seconds: meta.deep.seconds } : undefined,
     pasted: meta.pasted,
     typed: meta.typed,
     attachments: meta.attachments,
