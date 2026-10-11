@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Simplify mobile code boxes and full-screen viewers; preserve desktop tools and verify neutral full-screen previews.
+- [x] Simplify mobile code boxes and full-screen viewers; preserve desktop tools and verify neutral full-screen previews.
 - [x] Upgrade main code viewer and code preview: searchable numbered code, wrap/zoom controls, code/preview/split layouts, device sizes and frame-only reload; 22 tests pass and live HTML viewer controls verified with no page errors. Authenticated project compilation remains unverified without a signed-in session.
 - [x] Advanced chat tables: formatted Markdown tables, sorting, per-table copy and safe CSV downloads; 36 regression tests pass and browser controls verified in the actual chat renderer. Signed-in AI generation remains unverified because no custom-auth session is available.
 - [x] Separate Markdown copy boxes for written prompts, with normal explanations and independent copy controls; verified display and exact clipboard contents in browser, plus 29 tests.
@@ -11,3 +11,4 @@
 - [x] GitHub Actions runtime (Vision-Runtime): image + video format conversion, large-file checksums, live-tested
 - [ ] Publish so the live site gets the runtime + barcodes (needs user)
 - [x] Deep Thinking execution engine (task decomposition, per-task verify/correct, final validation, persistence, real progress) — 15 engine tests + live run verified
+- [x] Persistent app caching (service worker, IndexedDB chat cache, persistent storage request); browser behaviour on the published site not yet verified

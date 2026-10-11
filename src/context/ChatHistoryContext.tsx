@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, useEffect, useRef, ty
 import type { ChatMessage } from "@/lib/types";
 import { supabase } from "@/lib/cloud/client";
 import { useAuth } from "./AuthContext";
+import { idbGet, idbSet, idbDelete, idbClear } from "@/lib/idb-cache";
 
 export type ChatHistoryItem = {
   id: string;
@@ -62,12 +63,14 @@ function lsGetMessages(sessionId: string): ChatMessage[] | null {
 }
 
 function lsSetMessages(sessionId: string, msgs: ChatMessage[]) {
+  void idbSet(LS_MESSAGES_PREFIX + sessionId, msgs);
   try {
     localStorage.setItem(LS_MESSAGES_PREFIX + sessionId, JSON.stringify(msgs));
   } catch { /* quota exceeded */ }
 }
 
 function lsRemoveMessages(sessionId: string) {
+  void idbDelete(LS_MESSAGES_PREFIX + sessionId);
   try { localStorage.removeItem(LS_MESSAGES_PREFIX + sessionId); } catch {}
 }
 
@@ -150,6 +153,7 @@ export const ChatHistoryProvider = ({ children }: { children: ReactNode }) => {
   const [history, setHistory] = useState<ChatHistoryItem[]>(() => lsGetSessions());
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const prevUserRef = useRef<string | null>(null);
 
   // Sync history to localStorage whenever it changes
   useEffect(() => {
@@ -159,11 +163,15 @@ export const ChatHistoryProvider = ({ children }: { children: ReactNode }) => {
   // Load sessions from Supabase on mount / user change
   useEffect(() => {
     if (!user) {
+      // Signed out after being signed in: drop cached private chats from this browser.
+      if (prevUserRef.current) void idbClear();
+      prevUserRef.current = null;
       setHistory([]);
       setLoading(false);
       return;
     }
 
+    prevUserRef.current = user.id;
     let cancelled = false;
 
     const loadSessions = async () => {
@@ -215,6 +223,8 @@ export const ChatHistoryProvider = ({ children }: { children: ReactNode }) => {
       console.error("Failed to load chat messages:", error);
       const cached = lsGetMessages(sessionId);
       if (cached && cached.length > 0) return cached;
+      const stored = await idbGet<ChatMessage[]>(LS_MESSAGES_PREFIX + sessionId);
+      if (stored && stored.length > 0) return stored;
       throw new Error("unavailable");
     }
     if (!data || data.length === 0) {
