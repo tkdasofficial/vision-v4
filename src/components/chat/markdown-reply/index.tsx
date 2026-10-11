@@ -16,7 +16,8 @@ const components: Components = {
       return <TextCopyBox text={text} label={language === "prompt" ? "Prompt" : language === "markdown" || language === "md" ? "Markdown" : "Text"} />;
     }
     const codeNode = node?.children.find((item) => item.type === "element" && item.tagName === "code");
-    const meta = String(codeNode?.data?.meta ?? "");
+    const data = codeNode?.data;
+    const meta = data && "meta" in data ? String(data.meta ?? "") : "";
     return <CodeBlock code={text} language={language} filename={meta.match(/title="([^"]+)"/)?.[1]} />;
   },
   code: ({ children, className }) => <code className={className}>{children}</code>,
