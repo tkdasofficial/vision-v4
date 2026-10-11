@@ -15,6 +15,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ChatRouteImport } from './routes/chat'
+import { Route as DrawerRouteImport } from './routes/drawer'
 import { Route as EnterpriseRouteImport } from './routes/enterprise'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as GettingStartedRouteImport } from './routes/getting-started'
@@ -123,6 +124,11 @@ const AuthRoute = AuthRouteImport.update({
 const ChatRoute = ChatRouteImport.update({
   id: '/chat',
   path: '/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DrawerRoute = DrawerRouteImport.update({
+  id: '/drawer',
+  path: '/drawer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EnterpriseRoute = EnterpriseRouteImport.update({
@@ -530,6 +536,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/chat': typeof ChatRouteWithChildren
+  '/drawer': typeof DrawerRoute
   '/enterprise': typeof EnterpriseRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/getting-started': typeof GettingStartedRoute
@@ -615,6 +622,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/drawer': typeof DrawerRoute
   '/enterprise': typeof EnterpriseRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/getting-started': typeof GettingStartedRoute
@@ -702,6 +710,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/chat': typeof ChatRouteWithChildren
+  '/drawer': typeof DrawerRoute
   '/enterprise': typeof EnterpriseRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/getting-started': typeof GettingStartedRoute
@@ -791,6 +800,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/chat'
+    | '/drawer'
     | '/enterprise'
     | '/forgot-password'
     | '/getting-started'
@@ -876,6 +886,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/app'
     | '/auth'
+    | '/drawer'
     | '/enterprise'
     | '/forgot-password'
     | '/getting-started'
@@ -962,6 +973,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/chat'
+    | '/drawer'
     | '/enterprise'
     | '/forgot-password'
     | '/getting-started'
@@ -1050,6 +1062,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   ChatRoute: typeof ChatRouteWithChildren
+  DrawerRoute: typeof DrawerRoute
   EnterpriseRoute: typeof EnterpriseRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   GettingStartedRoute: typeof GettingStartedRoute
@@ -1129,6 +1142,13 @@ declare module '@tanstack/react-router' {
       path: '/chat'
       fullPath: '/chat'
       preLoaderRoute: typeof ChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/drawer': {
+      id: '/drawer'
+      path: '/drawer'
+      fullPath: '/drawer'
+      preLoaderRoute: typeof DrawerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/enterprise': {
@@ -1852,6 +1872,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   ChatRoute: ChatRouteWithChildren,
+  DrawerRoute: DrawerRoute,
   EnterpriseRoute: EnterpriseRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   GettingStartedRoute: GettingStartedRoute,
