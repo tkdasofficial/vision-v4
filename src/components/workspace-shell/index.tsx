@@ -8,7 +8,7 @@ export default function WorkspaceShell({ title, children, actions, backTo, foote
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { history } = useChatHistory();
-  const props = { onNewChat: () => navigate("/chat"), onSelectChat: (id: string) => navigate(`/chat/${id}`), chatHistory: history, isMainChat: false };
+  const props = { onNewChat: () => navigate("/chat"), onSelectChat: (id: string) => navigate(`/chat/${id}`) };
   return <div className="flex h-[100dvh] overflow-hidden bg-background">
     <AppDrawer {...props} open={open} onClose={() => setOpen(false)} />
     <main className="flex min-w-0 flex-1 flex-col">

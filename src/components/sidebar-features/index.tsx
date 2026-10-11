@@ -12,16 +12,16 @@ const features = [
 export default function SidebarFeatures({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   return (
-    <nav aria-label="Workspace features" className="space-y-0.5 px-3 pt-1.5">
+    <nav aria-label="Workspace features" className="grid gap-2 pt-3 sm:grid-cols-3">
       {features.map(({ label, to, icon: Icon }) => {
         const active = pathname === to;
         return (
           <Button
             key={to}
             asChild
-            variant="ghost"
+            variant="floating"
             className={cn(
-              "h-10 w-full justify-start gap-3 rounded-xl px-3 text-sm font-medium transition-colors",
+              "h-12 w-full justify-start gap-3 rounded-full px-4 text-sm font-medium transition-colors",
               active
                 ? "bg-sidebar-accent text-sidebar-accent-foreground"
                 : "text-sidebar-foreground hover:bg-sidebar-accent/60"
