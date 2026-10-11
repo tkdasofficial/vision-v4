@@ -26,7 +26,7 @@ const MobileSidebar = ({ open, onClose, onNewChat, onSelectChat, activeChatId, c
         open ? "translate-x-0" : "-translate-x-full",
       )}
     >
-      <SidebarHeader onNavigate={onClose} onClose={onClose} />
+      <SidebarHeader onNavigate={onClose} />
       <SidebarFeatures onNavigate={onClose} />
       <SidebarChatList chats={recentChats(chatHistory)} activeChatId={activeChatId} onSelectChat={onSelectChat} onNavigate={onClose} />
       <SidebarActions onNewChat={() => { onNewChat(); onClose(); }} />
