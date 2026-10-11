@@ -14,6 +14,9 @@
   --radius-md: calc(var(--radius) - 4px);
   --radius-sm: calc(var(--radius) - 8px);
   --color-background: hsl(var(--background));
+  --color-settings-canvas: hsl(var(--settings-canvas));
+  --color-settings-surface: hsl(var(--settings-surface));
+  --color-settings-divider: hsl(var(--settings-divider));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
@@ -74,6 +77,9 @@
 }
 
 :root {
+    --settings-canvas: 0 0% 94%;
+    --settings-surface: 0 0% 99%;
+    --settings-divider: 0 0% 94%;
     --drawer-glass: oklch(0.99 0 0 / 0.76);
     --drawer-edge: oklch(0.75 0 0 / 0.2);
     --drawer-shadow: 0 5px 18px oklch(0.2 0 0 / 0.06), inset 0 1px 0 oklch(1 0 0 / 0.55);
@@ -115,6 +121,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
+    --settings-canvas: 0 0% 12%;
+    --settings-surface: 0 0% 5%;
+    --settings-divider: 0 0% 12%;
     --drawer-glass: oklch(0.2 0 0 / 0.76);
     --drawer-edge: oklch(0.7 0 0 / 0.14);
     --drawer-shadow: 0 5px 18px oklch(0 0 0 / 0.2), inset 0 1px 0 oklch(0.8 0 0 / 0.08);
@@ -155,6 +164,9 @@
   }
 }
 :root.dark {
+    --settings-canvas: 0 0% 12%;
+    --settings-surface: 0 0% 5%;
+    --settings-divider: 0 0% 12%;
     --drawer-glass: oklch(0.2 0 0 / 0.76);
     --drawer-edge: oklch(0.7 0 0 / 0.14);
     --drawer-shadow: 0 5px 18px oklch(0 0 0 / 0.2), inset 0 1px 0 oklch(0.8 0 0 / 0.08);
