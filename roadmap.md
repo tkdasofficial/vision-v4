@@ -10,3 +10,4 @@
 - [ ] Real installs/builds/tests for generated projects — blocked: needs a code sandbox
 - [x] GitHub Actions runtime (Vision-Runtime): image + video format conversion, large-file checksums, live-tested
 - [ ] Publish so the live site gets the runtime + barcodes (needs user)
+- [x] Deep Thinking execution engine (task decomposition, per-task verify/correct, final validation, persistence, real progress) — 15 engine tests + live run verified
