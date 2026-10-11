@@ -62,7 +62,7 @@ export default function SettingsDirectory() {
     <div className="app-drawer relative grid h-[100dvh] grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden bg-settings-canvas text-foreground" data-scrolled={scrolled}>
       <header className="drawer-top relative z-10 col-start-1 row-start-1 self-start px-4 pb-5 pt-[max(12px,env(safe-area-inset-top))] sm:px-8">
         <div className="mx-auto grid h-11 max-w-xl grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-3">
-          <Button variant="floating" size="icon" className="size-11 shrink-0 rounded-full [&_svg]:size-5" aria-label="Back" title="Back" onClick={() => { if (window.history.length > 1) navigate(-1); else navigate("/drawer"); }}><ArrowLeft /></Button>
+          <Button variant="floating" size="icon" className="size-11 shrink-0 rounded-full [&_svg]:size-5" aria-label="Back" title="Back" onClick={() => navigate("/drawer")}><ArrowLeft /></Button>
           <h1 className="drawer-floating flex h-11 max-w-full items-center justify-center justify-self-center rounded-full px-6 text-center font-display text-xl font-semibold"><span className="truncate">Settings</span></h1>
           <span aria-hidden="true" />
         </div>

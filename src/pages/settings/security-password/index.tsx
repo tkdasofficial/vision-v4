@@ -68,7 +68,7 @@ export default function ResetPasswordCode() {
     : "Choose a strong password you don't use anywhere else.";
 
   return (
-    <SettingsPage title="Reset password" backTo="/settings/security">
+    <SettingsPage title="Reset password">
 
       <div className="w-full max-w-sm mx-auto flex flex-col gap-7 px-6 pt-4 pb-10">
         <div className="space-y-2">
