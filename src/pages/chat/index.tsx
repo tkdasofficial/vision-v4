@@ -4,8 +4,7 @@ import { useNavigate } from "@/lib/router-compat";
 import { useRouterState } from "@tanstack/react-router";
 import { type AITool } from "@/lib/types";
 import { useChatHistory } from "@/context/ChatHistoryContext";
-import DesktopSidebar from "@/components/desktop-sidebar";
-import MobileSidebar from "@/components/mobile-sidebar";
+import AppDrawer from "@/components/app-drawer";
 import ChatWorkspace from "@/components/chat-workspace";
 
 const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
@@ -95,21 +94,12 @@ const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
 
   return (
     <div className="flex h-[100dvh] bg-background overflow-hidden">
-      <DesktopSidebar
-        onNewChat={handleNewChat}
-        onSelectChat={handleSelectChat}
-        isMainChat={!selectedTool && !activeChatId}
-        activeChatId={activeChatId}
-        chatHistory={history}
-      />
-      <MobileSidebar
+      <AppDrawer
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         onNewChat={handleNewChat}
         onSelectChat={handleSelectChat}
-        isMainChat={!selectedTool && !activeChatId}
         activeChatId={activeChatId}
-        chatHistory={history}
       />
       <main className="flex-1 flex flex-col min-w-0">
         {loadError || opening ? (

@@ -542,9 +542,9 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
   return (
     <div className="flex flex-col h-full flex-1 min-w-0">
       <header className="relative flex shrink-0 items-center gap-3 bg-transparent px-3 py-1.5 sm:px-4 sm:py-2">
-        <Button variant="secondary" size="icon" aria-label="Open sidebar" title="Open sidebar"
+        <Button variant="floating" size="icon" aria-label="Open app drawer" title="Open app drawer"
           onClick={onMenuClick}
-          className="rounded-full text-foreground lg:hidden [&_svg]:size-[22px]"
+          className="rounded-full text-foreground [&_svg]:size-[22px]"
         >
           <Menu className="w-[22px] h-[22px]" />
         </Button>
