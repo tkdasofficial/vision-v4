@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Download, Expand, Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { downloadText, filenameFor } from "@/lib/code-files";
 import FullScreenCodeView from "@/components/chat/full-screen-code-view";
 import { useCopy } from "@/components/chat/use-copy";
 import { detectLanguage, highlight } from "@/components/chat/highlight";
@@ -11,11 +13,14 @@ const LINES = 15; // roughly 14–16 lines fill the square
 // The canvas never scrolls or zooms itself: tapping, swiping or pinching it opens the full-screen viewer.
 export default function CodeBlock({ code, language, filename }: Props) {
   const [open, setOpen] = useState(false);
+  const [initialView, setInitialView] = useState<"code" | "preview">("code");
   const { copied, copy } = useCopy();
   const box = useRef<HTMLDivElement>(null);
   const [font, setFont] = useState(13);
   const lang = useMemo(() => detectLanguage(code, language), [code, language]);
   const hl = useMemo(() => highlight(code, lang), [code, lang]);
+  const name = filenameFor(lang, filename);
+  const canPreview = ["html", "htm", "svg"].includes(lang ?? "");
 
   useEffect(() => {
     const el = box.current;
@@ -47,22 +52,24 @@ export default function CodeBlock({ code, language, filename }: Props) {
   }, []);
 
   return (
-    <div ref={box} className="code-canvas relative my-3 aspect-square w-full max-w-full overflow-hidden rounded-2xl border border-border">
+    <div ref={box} className="code-canvas relative my-3 aspect-square w-full max-w-full overflow-hidden rounded-lg border border-border">
+      <header className="absolute inset-x-0 top-0 z-10 flex h-11 items-center gap-1 border-b border-border bg-background/95 px-2">
+        <span className="min-w-0 flex-1 truncate px-1 font-mono text-xs" title={name}>{name}</span>
+        {canPreview && <Button variant="ghost" size="icon" className="size-8 rounded-md" aria-label="Preview code" title="Preview code" onClick={() => { setInitialView("preview"); setOpen(true); }}><Eye /></Button>}
+        <Button variant="ghost" size="icon" className="size-8 rounded-md" aria-label="Download code" title="Download code" onClick={() => downloadText(code, name)}><Download /></Button>
+        <Button variant="ghost" size="icon" className="size-8 rounded-md" aria-label={copied ? "Copied" : "Copy code"} title={copied ? "Copied" : "Copy code"} onClick={() => copy(code)}>{copied ? <Check /> : <Copy />}</Button>
+        <Button variant="ghost" size="icon" className="size-8 rounded-md" aria-label="Expand code" title="Expand code" onClick={() => { setInitialView("code"); setOpen(true); }}><Expand /></Button>
+      </header>
       <div
         role="button" tabIndex={0} aria-label="Open code full screen"
-        onClick={() => setOpen(true)}
+        onClick={() => { setInitialView("code"); setOpen(true); }}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(true); } }}
-        className="absolute inset-0 cursor-zoom-in overflow-hidden focus-visible:outline-2 focus-visible:outline-ring"
+        className="absolute inset-x-0 bottom-7 top-11 cursor-zoom-in overflow-hidden focus-visible:outline-2 focus-visible:outline-ring"
       >
-        <pre className="m-0 overflow-hidden whitespace-pre p-4 pr-14"><code className="hljs bg-transparent p-0 font-mono" style={{ fontSize: font, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: hl.html }} /></pre>
+        <pre className="m-0 overflow-hidden whitespace-pre p-4"><code className="hljs bg-transparent p-0 font-mono" style={{ fontSize: font, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: hl.html }} /></pre>
       </div>
-      <button
-        type="button" onClick={(e) => { e.stopPropagation(); copy(code); }} aria-label={copied ? "Copied" : "Copy code"}
-        className="absolute right-2 top-2 z-10 rounded-lg border border-border bg-background/90 p-2 text-muted-foreground backdrop-blur transition-colors hover:text-foreground"
-      >
-        {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-      </button>
-      {open && <FullScreenCodeView code={code} language={lang} filename={filename} html={hl.html} onClose={() => setOpen(false)} />}
+      <div className="absolute inset-x-0 bottom-0 flex h-7 items-center justify-between border-t border-border bg-background/95 px-3 font-mono text-[11px] text-muted-foreground"><span>{lang || "code"}</span><span>{code.split("\n").length} lines</span></div>
+      {open && <FullScreenCodeView code={code} language={lang} filename={filename} initialView={initialView} onClose={() => setOpen(false)} />}
     </div>
   );
 }
