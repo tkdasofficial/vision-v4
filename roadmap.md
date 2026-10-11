@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Upgrade main code viewer and code preview: searchable numbered code, wrap/zoom controls, safe preview layouts, device sizes, reload and browser verification.
 - [x] Advanced chat tables: formatted Markdown tables, sorting, per-table copy and safe CSV downloads; 36 regression tests pass and browser controls verified in the actual chat renderer. Signed-in AI generation remains unverified because no custom-auth session is available.
 - [x] Separate Markdown copy boxes for written prompts, with normal explanations and independent copy controls; verified display and exact clipboard contents in browser, plus 29 tests.
 - [x] Chat agent with backend tools across PRD categories (documents, PDF, data, charts, OCR, audio, QR, security, web, ZIP, code)
