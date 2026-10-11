@@ -104,6 +104,7 @@ export async function runDeepPipeline(opts: {
     finish = r.finishReason;
   }
 
+  let reviewedText: string | null = null;
   const review = async (): Promise<Issue[] | null> => {
     stages.push("review");
     const r = await opts.call([
@@ -112,17 +113,16 @@ export async function runDeepPipeline(opts: {
     ]);
     if (!r.ok) { stages.push("review-failed"); return null; }
     const v = parseReview(r.text);
+    reviewedText = text;
     return v.issues.map((m) => ({ code: "review", message: m } as Issue));
   };
 
   // 3. Deterministic validation + independent review → bounded correction → revalidate.
   stages.push("validate");
   let issues = validateCandidate(text, opts.analysis, finish);
-  let reviewRan = false;
-  let reviewUnavailable = false;
   if (opts.review && !issues.some((i) => i.code !== "truncated") && !overBudget()) {
     const r = await review();
-    if (r) { reviewRan = true; issues = [...issues, ...r]; } else reviewUnavailable = true;
+    if (r) issues = [...issues, ...r];
   }
   let corrections = 0;
   while (issues.some((i) => i.code !== "truncated") && corrections < L.maxCorrections && !overBudget()) {
@@ -138,7 +138,7 @@ export async function runDeepPipeline(opts: {
       text = r.text;
       if (opts.review && !next.some((i) => i.code !== "truncated") && !overBudget()) {
         const rv = await review();
-        if (rv) next = [...next, ...rv]; else reviewUnavailable = true;
+        if (rv) next = [...next, ...rv];
       }
       issues = next;
     }
@@ -148,7 +148,7 @@ export async function runDeepPipeline(opts: {
   // 4. Honest disclosure of anything still unresolved or unchecked.
   if (issues.length) {
     text += `\n\n> **Verification note:** some points could not be confirmed after ${corrections} correction attempt(s):\n${issues.map((i) => `> - ${i.message}`).join("\n")}`;
-  } else if (opts.review && (!reviewRan || reviewUnavailable)) {
+  } else if (opts.review && reviewedText !== text) {
     text += "\n\n> **Verification note:** the independent review step could not run for this answer, so only the automatic checks were applied.";
   }
   return { ok: true, text, remaining: issues, corrections, continuations, stages };
