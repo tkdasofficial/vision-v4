@@ -167,9 +167,10 @@ describe("Deep Thinking execution engine", () => {
 
   it("durations: each scene gets a planned length and the total is validated", async () => {
     const q = "Make 6 scenes for a 36 second audio. The generator supports 4, 6, 8, or 10 second clips.";
-    const f = fakeModel({ gen: (k) => ok(`The red fox. Duration: ${k === 6 ? 10 : 6}s`) });
+    const f = fakeModel({ gen: (k, m) => ok(`The red fox. Duration: ${k === 6 ? 7 : /exactly as "Duration: (\d+)s"/.exec(usr(m))![1]}s`) });
     const r = await runDeepEngine({ ...base({ call: f.call }), request: q, analysis: analyzeRequest(q) });
-    expect(r.state.tasks.every((t) => t.requiredDuration === 6)).toBe(true);
+    expect(r.state.tasks.reduce((x, t) => x + (t.requiredDuration ?? 0), 0)).toBe(36);
+    expect(r.state.tasks.slice(0, 5).every((t) => t.status === "verified")).toBe(true);
     expect(r.state.tasks[5].status).toBe("failed");
     expect(r.state.overall).not.toBe("completed");
   });
