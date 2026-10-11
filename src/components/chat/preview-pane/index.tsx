@@ -20,7 +20,11 @@ export default function PreviewPane({ html, title = "Code preview", iframeRef }:
     </div>
     <div className="relative flex min-h-0 flex-1 justify-center overflow-auto bg-muted/40 p-2 sm:p-4">
       {failed ? <div role="alert" className="flex items-center gap-2 self-center text-sm text-destructive"><AlertCircle className="size-4" />Preview could not load.</div> : <div className={cn("h-full min-h-64 shrink-0 overflow-hidden border border-border bg-background", device === "desktop" ? "w-full" : device === "tablet" ? "w-[768px]" : "w-[375px]")}>
-        <iframe ref={iframeRef} key={key} srcDoc={html} sandbox="allow-scripts" referrerPolicy="no-referrer" title={title} className="h-full w-full border-0" onLoad={() => { setFailed(false); setLoadedKey(key); }} onError={() => setFailed(true)} />
+        <iframe ref={(frame) => {
+          if (typeof iframeRef === "function") iframeRef(frame);
+          else if (iframeRef) iframeRef.current = frame;
+          if (frame) frame.onerror = () => setFailed(true);
+        }} key={key} srcDoc={html} sandbox="allow-scripts" referrerPolicy="no-referrer" title={title} className="h-full w-full border-0" onLoad={() => { setFailed(false); setLoadedKey(key); }} />
       </div>}
     </div>
     <div className="flex h-7 shrink-0 items-center justify-between border-t border-border px-3 font-mono text-[11px] text-muted-foreground"><span>{device === "desktop" ? "Fit to window" : device === "tablet" ? "768 px" : "375 px"}</span><span>Sandboxed</span></div>
