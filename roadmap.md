@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Advanced chat tables: formatted Markdown tables, sorting, per-table copy and CSV downloads, with regression and browser checks.
 - [x] Separate Markdown copy boxes for written prompts, with normal explanations and independent copy controls; verified display and exact clipboard contents in browser, plus 29 tests.
 - [x] Chat agent with backend tools across PRD categories (documents, PDF, data, charts, OCR, audio, QR, security, web, ZIP, code)
 - [x] Video format conversion via GitHub Actions runtime (editing excluded by scope)
