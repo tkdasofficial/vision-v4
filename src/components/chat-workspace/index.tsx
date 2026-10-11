@@ -1,3 +1,4 @@
+import { isImageGenerationRequest } from "@/lib/ai/image-intent";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Crown, Menu } from "lucide-react";
 import { IncognitoIcon } from "@/components/icons/incognito-icon";
