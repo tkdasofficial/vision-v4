@@ -2,15 +2,13 @@ import { useState, useCallback, useEffect, useRef, useMemo, forwardRef } from "r
 import type { ChatMessage as ChatMessageType, DeepStage } from "@/lib/types";
 import { Copy, Check, Volume2, VolumeX, ThumbsUp, ThumbsDown, Flag, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import ReactMarkdown from "react-markdown";
-import type { Components } from "react-markdown";
+import MarkdownReply from "@/components/chat/markdown-reply";
 import { useToast } from "@/hooks/use-toast";
 import WebAppPreviewCard from "@/components/web-app-preview-card";
 import ZipAnalysisCard from "@/components/zip-analysis-card";
 import JobCard from "@/components/job-card";
 import FileConverterCard from "@/components/file-converter-card";
 import FileCreatorCard from "@/components/file-creator-card";
-import CodeBlock from "@/components/chat/code-block";
 import UserMessage from "@/components/chat/user-message";
 import DocumentCard from "@/components/chat/document-card";
 
@@ -45,20 +43,6 @@ const proseClasses = [
   "[&_hr]:border-border [&_hr]:my-4",
 ].join(" ");
 
-/* Custom markdown components with code block copy */
-const mdComponents: Components = {
-  pre: ({ children }) => <>{children}</>,
-  code: ({ children, className, ...props }: any) => {
-    const isBlock = className?.startsWith("language-") || String(children).includes("\n");
-    if (isBlock) {
-      const meta = String(props.node?.data?.meta ?? "");
-      const filename = meta.match(/title="([^"]+)"/)?.[1];
-      return <CodeBlock code={String(children).replace(/\n$/, "")} language={className?.replace("language-", "") || undefined} filename={filename} />;
-    }
-    return <code className="bg-accent px-1.5 py-0.5 rounded-md text-[13px] font-mono" {...props}>{children}</code>;
-  },
-};
-
 /* ── Copy button for task card ── */
 const CardCopyButton = ({ content }: { content: string }) => {
   const [copied, setCopied] = useState(false);
@@ -89,6 +73,9 @@ const TASK_CPS = 180;
 type Segment = { type: "text" | "task"; content: string };
 
 const splitContent = (raw: string): Segment[] => {
+  // Keep every fence and surrounding explanation in one Markdown document.
+  // Segment heuristics can otherwise mistake the last lines of a prompt for an outro.
+  if (/^\s{0,3}(?:`{3,}|~{3,})/m.test(raw)) return [{ type: "text", content: raw }];
   const lines = raw.split("\n");
   const totalLen = raw.length;
 
@@ -325,7 +312,7 @@ const ChatMessage = forwardRef<HTMLDivElement, Props>(({ message, isNew = false 
                     "prose prose-sm prose-neutral dark:prose-invert max-w-none text-foreground text-[13px] sm:text-sm break-words",
                     proseClasses
                   )}>
-                    <ReactMarkdown components={mdComponents}>{displayed}</ReactMarkdown>
+                    <MarkdownReply>{displayed}</MarkdownReply>
                     {isActive && <span className="inline-block w-[2px] h-[1em] bg-foreground/70 align-middle animate-pulse ml-0.5" />}
                   </div>
                 </div>
@@ -450,7 +437,13 @@ const deepProse = [
 ].join(" ");
 
 const DeepReply = ({ message }: { message: ChatMessageType }) => {
-  const stage = message.deep!.stage;
+  const deep = message.deep;
+  if (!deep) return null;
+  return <DeepReplyContent message={message} deep={deep} />;
+};
+
+const DeepReplyContent = ({ message, deep }: { message: ChatMessageType; deep: NonNullable<ChatMessageType["deep"]> }) => {
+  const stage = deep.stage;
   const done = stage === "done" && !!message.content;
   const { title, body } = useMemo(() => splitDeepTitle(message.content || ""), [message.content]);
   return (
@@ -458,12 +451,12 @@ const DeepReply = ({ message }: { message: ChatMessageType }) => {
       <p className="text-sm text-muted-foreground">
         {done ? "Here's what I worked out." : stage === "failed" ? "I couldn't finish this one." : "I'm working on it — thinking it through and checking the result before I answer."}
       </p>
-      <DeepStatusCard stage={stage} seconds={message.deep!.seconds} since={message.timestamp} />
+      <DeepStatusCard stage={stage} seconds={deep.seconds} since={message.timestamp} />
       {(done || stage === "failed") && message.content && (
         <article className="animate-fade-in pt-2">
           {title && <h2 className="font-display text-2xl sm:text-[28px] font-bold leading-tight tracking-tight text-foreground py-4">{title}</h2>}
           <div className={cn("prose prose-neutral dark:prose-invert max-w-none text-foreground break-words", deepProse)}>
-            <ReactMarkdown components={mdComponents}>{body}</ReactMarkdown>
+            <MarkdownReply>{body}</MarkdownReply>
           </div>
         </article>
       )}
