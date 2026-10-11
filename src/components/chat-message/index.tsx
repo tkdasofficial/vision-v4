@@ -33,10 +33,6 @@ const proseClasses = [
   "[&_pre]:my-0",
   "[&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-[13px]",
   "[&_blockquote]:border-l-[3px] [&_blockquote]:border-foreground/15 [&_blockquote]:pl-4 [&_blockquote]:py-0.5 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:my-3 [&_blockquote]:bg-accent/50 [&_blockquote]:rounded-r-lg [&_blockquote]:pr-3",
-  "[&_table]:border-collapse [&_table]:w-full [&_table]:my-3 [&_table]:rounded-lg [&_table]:overflow-hidden [&_table]:border [&_table]:border-border",
-  "[&_th]:border [&_th]:border-border [&_th]:px-3 [&_th]:py-2 [&_th]:bg-accent [&_th]:text-xs [&_th]:font-semibold [&_th]:text-left [&_th]:uppercase [&_th]:tracking-wider",
-  "[&_td]:border [&_td]:border-border [&_td]:px-3 [&_td]:py-2 [&_td]:text-sm",
-  "[&_tr:hover]:bg-accent/30",
   "[&_ul]:space-y-1.5 [&_ul]:my-2 [&_ul]:pl-1",
   "[&_ol]:space-y-1.5 [&_ol]:my-2 [&_ol]:pl-1",
   "[&_li]:pl-1",
@@ -76,6 +72,8 @@ const splitContent = (raw: string): Segment[] => {
   // Keep every fence and surrounding explanation in one Markdown document.
   // Segment heuristics can otherwise mistake the last lines of a prompt for an outro.
   if (/^\s{0,3}(?:`{3,}|~{3,})/m.test(raw)) return [{ type: "text", content: raw }];
+  // A table's separator and rows must remain with its header, even mid-stream.
+  if (/^\s*\|?.*\|.*\n\s*\|?\s*:?-{3,}:?\s*\|/m.test(raw)) return [{ type: "text", content: raw }];
   const lines = raw.split("\n");
   const totalLen = raw.length;
 
