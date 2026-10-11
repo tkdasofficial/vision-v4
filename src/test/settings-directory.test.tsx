@@ -9,6 +9,13 @@ import SettingsDirectory, { SETTINGS_CATEGORIES } from "@/pages/settings";
 afterEach(() => { cleanup(); vi.clearAllMocks(); mocks.isAdmin = false; });
 
 describe("Settings directory", () => {
+  it("uses compact individual capsules for every settings button", () => {
+    render(<SettingsDirectory />);
+    for (const button of screen.getAllByRole("button")) expect(button).toHaveClass("rounded-full");
+    expect(screen.getByRole("button", { name: "Appearance" })).toHaveClass("min-h-12", "bg-settings-surface");
+    expect(screen.getByRole("button", { name: "Edit profile" })).toHaveClass("min-h-20");
+    expect(screen.getByRole("button", { name: "Close settings" })).toHaveClass("size-11");
+  });
   it("preserves every category and account, upgrade, help and legal destinations", () => {
     render(<SettingsDirectory />);
     for (const category of SETTINGS_CATEGORIES) {
