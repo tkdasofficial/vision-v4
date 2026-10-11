@@ -80,16 +80,16 @@ async function runChat(prompt: string): Promise<string> {
 }
 
 async function runImageGen(prompt: string): Promise<{ output: string; imageUrl: string }> {
-  const resp = await fetch(`${BASE}/functions/v1/generate-image`, {
+  const resp = await fetch("/api/generate-image", {
     method: "POST",
-    headers,
-    body: JSON.stringify({ prompt, model: "flux" }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, stream: false }),
   });
   const data = await resp.json();
   if (!resp.ok) throw new Error(data.error || "Image generation failed");
 
-  const img = data.images?.[0];
-  const url = img?.base64 ? `data:image/png;base64,${img.base64}` : img?.url || img;
+  const img = data.data?.[0];
+  const url = img?.b64_json ? `data:image/png;base64,${img.b64_json}` : img?.url;
   return { output: `Generated image for: ${prompt}`, imageUrl: url };
 }
 

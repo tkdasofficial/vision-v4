@@ -15,6 +15,7 @@ import CreationEmptyState from "@/components/creation-empty-state";
 import type { CreationMode } from "@/lib/creation-references";
 import TypingIndicator, { detectPhase, type ThinkingPhase } from "@/components/typing-indicator";
 import { detectAspectRatio } from "@/lib/detect-aspect-ratio";
+import { streamImage } from "@/lib/stream-image";
 import { getCategory } from "@/lib/file-converter";
 import { runJob, listJobs, fetchJob, cancelJob } from "@/lib/builder/jobs-client";
 import { isTerminal } from "@/lib/builder/statuses";
@@ -381,31 +382,21 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
 
     if (isImageToImage) {
       try {
-        const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/image-to-image`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            image: imageData.base64,
-            mimeType: imageData.mimeType,
-            instruction: content,
-            aspect_ratio: detectedRatio,
-          }),
-        });
-        const data = await resp.json();
-        if (!resp.ok) throw new Error(data.error || "Image generation failed");
+        const form = new FormData();
+        form.set("prompt", content);
+        form.set("aspect_ratio", detectedRatio);
+        const blob = await (await fetch(`data:${imageData.mimeType};base64,${imageData.base64}`)).blob();
+        form.set("image", new File([blob], "reference", { type: imageData.mimeType }));
 
-        const firstImg = data.images?.[0];
-        const imageUrl = firstImg?.base64
-          ? `data:image/png;base64,${firstImg.base64}`
-          : firstImg?.url || (typeof firstImg === "string" ? firstImg : undefined);
+        let imageUrl: string | undefined;
+        await streamImage("/api/edit-image", form, (dataUrl, isFinal) => {
+          if (isFinal) imageUrl = dataUrl;
+        });
 
         setMessages((prev) => [...prev, {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: `Here is your generated image based on the reference. Prompt used: ${data.prompt || "optimized prompt"}`,
+          content: "Here is your generated image based on the reference.",
           timestamp: new Date(),
           toolId: tool?.id,
           imageUrl,
@@ -426,21 +417,10 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
     if (isImageGen && !imageData) {
       try {
         dispatchBgTask("image", { prompt: content, aspect_ratio: detectedRatio }, chatId || undefined).catch(() => {});
-        const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ prompt: content, aspect_ratio: detectedRatio, model: "flux" }),
+        let imageUrl: string | undefined;
+        await streamImage("/api/generate-image", { prompt: content, aspect_ratio: detectedRatio }, (dataUrl, isFinal) => {
+          if (isFinal) imageUrl = dataUrl;
         });
-        const data = await resp.json();
-        if (!resp.ok) throw new Error(data.error || "Image generation failed");
-
-        const firstImg = data.images?.[0];
-        const imageUrl = firstImg?.base64
-          ? `data:image/png;base64,${firstImg.base64}`
-          : firstImg?.url || (typeof firstImg === "string" ? firstImg : undefined);
 
         setMessages((prev) => [...prev, {
           id: (Date.now() + 1).toString(),
