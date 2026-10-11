@@ -3,12 +3,25 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import FullScreenCodeView from "@/components/chat/full-screen-code-view";
 import CodeSource from "@/components/chat/code-source";
 import PreviewPane from "@/components/chat/preview-pane";
+import { codeLanguageLabel } from "@/lib/code-language-label";
 
 beforeAll(() => { Element.prototype.scrollIntoView = vi.fn(); });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 const code = '<!doctype html>\n<h1>Hello</h1>\n<p>Hello again</p>\n<button onclick="this.textContent=\'Clicked\'">Test</button>';
 
 describe("Advanced code viewer", () => {
+  it("labels languages and places the mobile preview toggle before download and copy", () => {
+    expect(codeLanguageLabel("html")).toBe("HTML");
+    expect(codeLanguageLabel("javascript")).toBe("JavaScript");
+    expect(codeLanguageLabel("cpp")).toBe("C++");
+    render(<FullScreenCodeView code={code} language="html" onClose={vi.fn()} />);
+    const toggle = screen.getByRole("button", { name: "Preview", exact: true });
+    expect(toggle.parentElement?.querySelectorAll("button")[1]).toHaveAccessibleName("Download code.html");
+    fireEvent.click(toggle);
+    expect(screen.getByTitle("code.html preview")).toHaveAttribute("sandbox", "allow-scripts");
+    fireEvent.click(screen.getByRole("button", { name: "Show code" }));
+    expect(screen.getByLabelText("Code content")).toBeInTheDocument();
+  });
   it("opens searchable numbered source and navigates matching lines", async () => {
     render(<FullScreenCodeView code={code} language="html" filename="index.html" onClose={vi.fn()} />);
     expect(screen.getByRole("dialog")).toHaveAccessibleName("index.html");
