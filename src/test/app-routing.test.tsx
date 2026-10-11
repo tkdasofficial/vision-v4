@@ -23,6 +23,7 @@ describe("App routing", () => {
     ["/projects/new", "/projects/new"],
     ["/integrations", "/integrations"],
     ["/search", "/search"],
+    ["/drawer", "/drawer"],
     ["/inbox", "/inbox"],
     ["/account", "/account"],
     ["/prospecting", "/prospecting"],

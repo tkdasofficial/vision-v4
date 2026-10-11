@@ -3,18 +3,19 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ navigate: vi.fn(), rename: vi.fn(), remove: vi.fn() }));
 vi.mock("@/lib/router-compat", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("@/context/AuthContext", () => ({ useAuth: () => ({ profile: null }) }));
+vi.mock("@/context/AuthContext", () => ({ useAuth: () => ({ user: null, profile: null }) }));
+vi.mock("@/lib/cloud/client", () => ({ supabase: {} }));
 vi.mock("@/context/ChatHistoryContext", () => ({ useChatHistory: () => ({ history: [{ id: "chat-1", title: "Design notes" }, { id: "chat-2", title: "Project chat", projectId: "project-1" }], renameChat: mocks.rename, deleteChat: mocks.remove }) }));
 vi.mock("@/components/sidebar-features", () => ({ default: () => <nav aria-label="Workspace features">Library · Projects · Plugins</nav> }));
-vi.mock("@/components/workspace-search", () => ({ default: ({ onNavigate }: { onNavigate: () => void }) => <div><input aria-label="Search anything" /><button onClick={onNavigate}>Search result</button></div> }));
 import AppDrawer, { AppDrawerView } from "@/components/app-drawer";
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 
 describe("AppDrawer", () => {
-  it("opens as a fullscreen accessible dialog with no separator", () => {
+  it("renders a fullscreen page surface, not a dialog, with no separator", () => {
     const close = vi.fn();
-    render(<AppDrawer open onClose={close} onNewChat={vi.fn()} onSelectChat={vi.fn()} />);
-    expect(screen.getByRole("dialog", { name: "App drawer" })).toHaveClass("inset-0", "w-full");
+    const { container } = render(<AppDrawer onClose={close} onNewChat={vi.fn()} onSelectChat={vi.fn()} />);
+    expect(container.firstChild).toHaveClass("h-[100dvh]", "w-full");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.queryByRole("separator")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Close app drawer" }));
     expect(close).toHaveBeenCalled();
@@ -38,11 +39,27 @@ describe("AppDrawer", () => {
     const close = vi.fn();
     render(<AppDrawerView onClose={close} onNewChat={vi.fn()} onSelectChat={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: "Search workspace" }));
-    expect(screen.getByRole("textbox", { name: "Search anything" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Search result" }));
-    expect(close).toHaveBeenCalled();
+    const search = screen.getByRole("searchbox", { name: "Search anything" });
+    expect(search).toHaveFocus();
+    expect(screen.queryByRole("button", { name: "Search workspace" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Vision" })).not.toBeInTheDocument();
+    const filters = screen.getByRole("tablist", { name: "Search categories" });
+    expect(search.compareDocumentPosition(filters) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    fireEvent.change(search, { target: { value: "Design" } });
+    expect(search).toHaveValue("Design");
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Uploaded Files" }), { button: 0, ctrlKey: false });
+    expect(screen.getByRole("tab", { name: "Uploaded Files" })).toHaveAttribute("data-state", "active");
+    fireEvent.click(screen.getByRole("button", { name: "Clear search" }));
+    expect(search).toHaveValue("");
     fireEvent.click(screen.getByRole("button", { name: "Back to drawer" }));
     expect(screen.getByRole("button", { name: "New chat" })).toBeInTheDocument();
     expect(mocks.navigate).not.toHaveBeenCalled();
+  });
+  it("opens the preserved direct search entry and returns to the drawer UI", () => {
+    render(<AppDrawerView initialSearch onClose={vi.fn()} onNewChat={vi.fn()} onSelectChat={vi.fn()} />);
+    expect(screen.getByRole("searchbox")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Back to drawer" }));
+    expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Search workspace" })).toBeInTheDocument();
   });
 });

@@ -4,7 +4,6 @@ import { useNavigate } from "@/lib/router-compat";
 import { useRouterState } from "@tanstack/react-router";
 import { type AITool } from "@/lib/types";
 import { useChatHistory } from "@/context/ChatHistoryContext";
-import AppDrawer from "@/components/app-drawer";
 import ChatWorkspace from "@/components/chat-workspace";
 
 const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
@@ -17,7 +16,6 @@ const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
   const { getChatById, loadChatMessages } = useChatHistory();
 
   const [selectedTool, setSelectedTool] = useState<AITool | undefined>(undefined);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatKey, setChatKey] = useState(0);
   // Starts empty so the effect below loads saved messages when a chat is opened by its address (including reloads).
   const [activeChatId, setActiveChatId] = useState<string | undefined>(undefined);
@@ -77,11 +75,6 @@ const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
     navigate(isIncognito ? "/chat" : "/chat/incognito");
   };
 
-  const handleSelectChat = useCallback((id: string) => {
-    if (id === urlChatId) return openFromUrl(id);
-    navigate(`${base}/${id}`); // the address change opens it
-  }, [navigate, base, urlChatId, openFromUrl]);
-
   const handleChatCreated = useCallback((id: string) => {
     wanted.current = id;
     justCreated.current = id;
@@ -94,13 +87,6 @@ const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
 
   return (
     <div className="flex h-[100dvh] bg-background overflow-hidden">
-      <AppDrawer
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onNewChat={handleNewChat}
-        onSelectChat={handleSelectChat}
-        activeChatId={activeChatId}
-      />
       <main className="flex-1 flex flex-col min-w-0">
         {loadError || opening ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
@@ -117,7 +103,7 @@ const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
           tool={selectedTool}
           isIncognito={isIncognito}
           onIncognitoChat={handleIncognitoChat}
-          onMenuClick={() => setSidebarOpen(true)}
+          onMenuClick={() => navigate(`/drawer?returnTo=${encodeURIComponent(pathname)}`)}
           initialMessages={initialMessages && initialMessages.length > 0 ? initialMessages : undefined}
           chatId={activeChatId}
           onChatCreated={handleChatCreated}

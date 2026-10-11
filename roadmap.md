@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Make AppDrawer a protected page with an inline search header, filters below it, and a back button returning to navigation. 62 tests pass; desktop/mobile component browser checks confirm header replacement, 12px top gap, filter selection, clearing and back. Signed-in search results remain unverified without a session.
 - [x] Replace sidebars with full-screen AppDrawer and embedded workspace search; floating translucent edges, 12px top gap, no divider. 60 tests pass; component browser checks confirm fullscreen sizing and mobile overflow/scroll/search/close behavior. Signed-in search results remain unverified without a session.
 - [x] Simplify mobile code boxes and full-screen viewers; preserve desktop tools and verify neutral full-screen previews.
 - [x] Upgrade main code viewer and code preview: searchable numbered code, wrap/zoom controls, code/preview/split layouts, device sizes and frame-only reload; 22 tests pass and live HTML viewer controls verified with no page errors. Authenticated project compilation remains unverified without a signed-in session.

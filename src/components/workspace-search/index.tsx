@@ -1,20 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowUpRight, FileText, MessageSquare, Search as SearchIcon, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, FileText, MessageSquare, Search as SearchIcon, Sparkles, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/context/AuthContext";
 import { useChatHistory } from "@/context/ChatHistoryContext";
 import { supabase } from "@/lib/cloud/client";
 import { assetTypes, collectSearchItems, filterSearchItems, type AssetType, type SearchCategory, type SearchItem } from "@/lib/workspace-search";
+import { Button } from "@/components/ui/button";
 import BottomSearch from "@/components/bottom-search";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const categories = [
   { value: "chats", label: "Recent Chats", icon: MessageSquare },
   { value: "files", label: "Uploaded Files", icon: FileText },
-  { value: "generated", label: "Generated Items", icon: Sparkles },
+  { value: "generated", label: "Generated Items", icon: Sparkles, X },
 ] as const;
 
-export default function WorkspaceSearch({ library = false, onNavigate, onScrollChange }: { library?: boolean; onNavigate?: () => void; onScrollChange?: (scrolled: boolean) => void }) {
+export default function WorkspaceSearch({ library = false, topSearch = false, onBack, onNavigate, onScrollChange }: { library?: boolean; topSearch?: boolean; onBack?: () => void; onNavigate?: () => void; onScrollChange?: (scrolled: boolean) => void }) {
   const { user } = useAuth();
   const { history } = useChatHistory();
   const [query, setQuery] = useState("");
@@ -64,13 +65,27 @@ export default function WorkspaceSearch({ library = false, onNavigate, onScrollC
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-        <div className="shrink-0 overflow-x-auto px-4 pb-3 sm:px-8">
+        <div className={topSearch ? "drawer-top z-10 shrink-0 pb-5 pt-[max(12px,env(safe-area-inset-top))]" : "shrink-0"}>
+          {topSearch && <header className="px-4 sm:px-8">
+            <div className="mx-auto flex max-w-4xl items-center gap-3">
+              <Button variant="floating" size="icon" className="size-11 shrink-0" aria-label="Back to drawer" title="Back to drawer" onClick={onBack}><ArrowLeft /></Button>
+              <div className="relative min-w-0 flex-1">
+                <SearchIcon className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                <input autoFocus type="search" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search anything" placeholder="Search anything" className="drawer-floating h-11 w-full appearance-none rounded-full pl-12 pr-11 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:hidden" />
+                {query && <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 size-8 -translate-y-1/2" aria-label="Clear search" title="Clear search" onClick={() => setQuery("")}><X className="size-4" /></Button>}
+              </div>
+            </div>
+          </header>}
+          <div className={`overflow-x-auto px-4 pb-3 sm:px-8 ${topSearch ? "pt-4" : ""}`}>
+            <div className="mx-auto max-w-4xl">
             <Tabs value={library ? assetType : category} onValueChange={(value) => library ? setAssetType(value as AssetType | "all") : setCategory(value as SearchCategory | "all")}>
               <TabsList aria-label={library ? "Library file types" : "Search categories"} className="flex h-auto w-max flex-nowrap justify-start gap-2 bg-transparent p-0">
                 <TabsTrigger className="h-10 flex-none rounded-full border-0 bg-transparent px-5 text-base font-semibold text-muted-foreground data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none" value="all">All</TabsTrigger>
                 {(library ? availableTypes : categories).map((entry) => <TabsTrigger className="h-10 flex-none rounded-full border-0 bg-transparent px-5 text-base font-semibold text-muted-foreground data-[state=active]:bg-secondary data-[state=active]:text-foreground data-[state=active]:shadow-none" key={entry.value} value={entry.value}>{entry.label}</TabsTrigger>)}
               </TabsList>
             </Tabs>
+            </div>
+          </div>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-2 sm:px-8" onScroll={(event) => onScrollChange?.(event.currentTarget.scrollTop > 8)}>
           <div className="mx-auto max-w-3xl">
@@ -92,7 +107,7 @@ export default function WorkspaceSearch({ library = false, onNavigate, onScrollC
             })}
           </div>
         </div>
-        <BottomSearch value={query} onChange={setQuery} placeholder={library ? "Search library" : "Search anything"} />
+        {!topSearch && <BottomSearch value={query} onChange={setQuery} placeholder={library ? "Search library" : "Search anything"} />}
     </div>
   );
 }
