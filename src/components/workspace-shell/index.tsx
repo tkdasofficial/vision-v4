@@ -1,13 +1,11 @@
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "@/lib/router-compat";
-import { useChatHistory } from "@/context/ChatHistoryContext";
 import AppDrawer from "@/components/app-drawer";
 import PageHeader, { type PageMenuItem } from "@/components/page-header";
 
 export default function WorkspaceShell({ title, children, actions, backTo, footer, menu }: { title: string; children: ReactNode; actions?: ReactNode; backTo?: string; footer?: ReactNode; menu?: PageMenuItem[] }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const { history } = useChatHistory();
   const props = { onNewChat: () => navigate("/chat"), onSelectChat: (id: string) => navigate(`/chat/${id}`) };
   return <div className="flex h-[100dvh] overflow-hidden bg-background">
     <AppDrawer {...props} open={open} onClose={() => setOpen(false)} />

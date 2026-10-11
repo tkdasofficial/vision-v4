@@ -14,7 +14,7 @@ const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
   const urlChatId = seg && seg !== "incognito" ? decodeURIComponent(seg) : undefined;
   const base = "/chat";
   const navigate = useNavigate();
-  const { getChatById, history, loadChatMessages } = useChatHistory();
+  const { getChatById, loadChatMessages } = useChatHistory();
 
   const [selectedTool, setSelectedTool] = useState<AITool | undefined>(undefined);
   const [sidebarOpen, setSidebarOpen] = useState(false);
