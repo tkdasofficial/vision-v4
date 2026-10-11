@@ -153,6 +153,7 @@ export const ChatHistoryProvider = ({ children }: { children: ReactNode }) => {
   const [history, setHistory] = useState<ChatHistoryItem[]>(() => lsGetSessions());
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const prevUserRef = useRef<string | null>(null);
 
   // Sync history to localStorage whenever it changes
   useEffect(() => {
@@ -162,13 +163,15 @@ export const ChatHistoryProvider = ({ children }: { children: ReactNode }) => {
   // Load sessions from Supabase on mount / user change
   useEffect(() => {
     if (!user) {
-      // Signed out: drop cached private chats from this browser.
-      void idbClear();
+      // Signed out after being signed in: drop cached private chats from this browser.
+      if (prevUserRef.current) void idbClear();
+      prevUserRef.current = null;
       setHistory([]);
       setLoading(false);
       return;
     }
 
+    prevUserRef.current = user.id;
     let cancelled = false;
 
     const loadSessions = async () => {
