@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Page from "@/pages/chat";
-import { Protected } from "@/components/protected";
+// The chat screen itself lives in the /chat layout (src/routes/chat.tsx); this route only sets the address and title.
 
 export const Route = createFileRoute("/chat/$chatId")({
   head: () => ({
@@ -17,5 +16,5 @@ export const Route = createFileRoute("/chat/$chatId")({
 });
 
 function RouteComponent() {
-  return <Protected><Page /></Protected>;
+  return null;
 }

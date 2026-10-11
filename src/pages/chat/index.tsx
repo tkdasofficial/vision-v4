@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { useParams, useNavigate } from "@/lib/router-compat";
+import { useNavigate } from "@/lib/router-compat";
+import { useRouterState } from "@tanstack/react-router";
 import { type AITool } from "@/lib/types";
 import { useChatHistory } from "@/context/ChatHistoryContext";
 import DesktopSidebar from "@/components/desktop-sidebar";
@@ -8,8 +9,10 @@ import MobileSidebar from "@/components/mobile-sidebar";
 import ChatWorkspace from "@/components/chat-workspace";
 
 const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
-  const params = useParams<{ chatId: string }>();
-  const urlChatId = params.chatId;
+  // Read from the address: this screen stays mounted across /chat, /chat/<id> and /chat/incognito.
+  const pathname = useRouterState({ select: (st) => st.location.pathname });
+  const seg = pathname.match(/^\/chat\/([^/]+)\/?$/)?.[1];
+  const urlChatId = seg && seg !== "incognito" ? decodeURIComponent(seg) : undefined;
   const base = "/chat";
   const navigate = useNavigate();
   const { getChatById, history, loadChatMessages } = useChatHistory();

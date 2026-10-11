@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Page from "@/pages/chat";
-import { Protected } from "@/components/protected";
+// The chat screen itself lives in the /chat layout (src/routes/chat.tsx); this route only sets the address and title.
 
 export const Route = createFileRoute("/chat/incognito")({
   head: () => ({ meta: [
@@ -14,5 +13,5 @@ export const Route = createFileRoute("/chat/incognito")({
   component: IncognitoPage,
 });
 function IncognitoPage() {
-  return <Protected><Page isIncognito /></Protected>;
+  return null;
 }
