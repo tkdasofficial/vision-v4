@@ -30,3 +30,5 @@ const enc = new TextEncoder();
 export const sseChunk = (content: string) => enc.encode(`data: ${JSON.stringify({ choices: [{ delta: { content } }] })}\n\n`);
 export const sseDone = () => enc.encode("data: [DONE]\n\n");
 export const sseComment = (c: string) => enc.encode(`: ${c}\n\n`);
+/** Progress event: real backend stage, ignored by text parsers (no choices/response field). */
+export const sseStatus = (stage: string, detail?: string) => enc.encode(`data: ${JSON.stringify({ vision_status: { stage, detail } })}\n\n`);
