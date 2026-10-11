@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Replace sidebars with full-screen AppDrawer and embedded workspace search; floating translucent edges, 12px top gap, no divider. 60 tests pass; component browser checks confirm fullscreen sizing and mobile overflow/scroll/search/close behavior. Signed-in search results remain unverified without a session.
 - [x] Simplify mobile code boxes and full-screen viewers; preserve desktop tools and verify neutral full-screen previews.
 - [x] Upgrade main code viewer and code preview: searchable numbered code, wrap/zoom controls, code/preview/split layouts, device sizes and frame-only reload; 22 tests pass and live HTML viewer controls verified with no page errors. Authenticated project compilation remains unverified without a signed-in session.
 - [x] Advanced chat tables: formatted Markdown tables, sorting, per-table copy and safe CSV downloads; 36 regression tests pass and browser controls verified in the actual chat renderer. Signed-in AI generation remains unverified because no custom-auth session is available.
@@ -12,4 +13,4 @@
 - [ ] Publish so the live site gets the runtime + barcodes (needs user)
 - [x] Deep Thinking execution engine (task decomposition, per-task verify/correct, final validation, persistence, real progress) — 15 engine tests + live run verified
 - [x] Persistent app caching (service worker, IndexedDB chat cache, persistent storage request); browser behaviour on the published site not yet verified
-- [x] Inset horizontal divider (32px each side) between sidebar header and page buttons, on desktop and mobile menus; measured in browser
+- [x] Old inset sidebar divider removed as part of the requested AppDrawer refinement.

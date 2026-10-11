@@ -9,7 +9,7 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- IMPORTANT: All secrets and credentials live in Cloudflare (project-level Secrets & Variables, or the Cloudflare Secrets Store for Workers), never in Lovable secrets. Code reads them from the runtime environment; add or change them in Cloudflare, and never ask the user to put credentials into Lovable. Why: the app and gateway run on Cloudflare, which is the single source of truth for credentials.
+- Credentials live only in Cloudflare Secrets/Variables or its Secrets Store and are read at runtime, never in Lovable secrets. Why: Cloudflare is the credential source of truth.
 
 - Page UIs live in `src/pages/<page>/index.tsx` (Admin stays in `src/views/admin/`), reusable UI in `src/components/<name>/index.tsx` (shadcn `ui/` keeps its flat files); route files only wrap a page. Old URLs are mapped once in `src/lib/legacy-routes.ts` and redirected by thin legacy route files; OAuth callbacks, `/auth/verify` and APIs are never redirected. Page access is decided in `src/lib/route-access.ts` and enforced once by `RouteGuard` in `__root.tsx`; a failed session check means retry, never signed out. Why: one rule set, no flashes or false logouts.
 - Views navigate via `@/lib/router-compat` (thin adapter over TanStack Router). Why: lets ported code keep simple `navigate(path)` calls; never reintroduce react-router-dom.
@@ -25,3 +25,5 @@
 - Enterprise Login state lives server-side in D1 keyed by an HttpOnly attempt cookie; domain ownership is proven only by DNS TXT and OTPs are bound to the attempt (details in `src/lib/AGENTS.md`). Why: the browser never holds verification results.
 - Session cookie is SameSite=None + Partitioned with 30-day sliding renewal (refreshed at most daily in getCaller); every sign-in is recorded in D1 login_history with user agent and IP (pruned after 180 days). Why: keeps users signed in, including inside embedded previews; every state-changing endpoint must call assertSameOrigin to replace the CSRF protection Lax used to give.
 - Offline caching uses vite-plugin-pwa (generateSW, client build only) registered solely from `src/lib/pwa.ts`, which refuses dev, iframes, preview hosts and `?sw=off`; pages are network-first and sign-in/admin/API paths are never cached; saved chats mirror to IndexedDB (`src/lib/idb-cache.ts`) and are cleared on sign-out. Why: fast repeats, no stale code or cached private data.
+
+- Workspace navigation uses the full-screen AppDrawer on every viewport; /search renders its search view and library reuses WorkspaceSearch. Why: one navigation surface and search implementation avoid divergent behavior.
