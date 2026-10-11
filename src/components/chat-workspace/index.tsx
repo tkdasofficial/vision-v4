@@ -427,7 +427,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       clearTimeout(phaseTimer);
       setIsTyping(false);
     }
-  }, [tool, chatId, addChat, messages, updateChatMessages, isIncognito]);
+  }, [tool, chatId, addChat, messages, updateChatMessages, isIncognito, mode]);
 
   /** Attached documents/data/audio plus an instruction → one backend agent task in this chat. */
   const handleSendFiles = useCallback(async (content: string, files: File[], extras?: { typed: string; pasted: PastedBlock[] }) => {
