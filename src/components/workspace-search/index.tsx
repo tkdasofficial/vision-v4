@@ -14,7 +14,7 @@ const categories = [
   { value: "generated", label: "Generated Items", icon: Sparkles },
 ] as const;
 
-export default function WorkspaceSearch({ library = false, onNavigate }: { library?: boolean; onNavigate?: () => void }) {
+export default function WorkspaceSearch({ library = false, onNavigate, onScrollChange }: { library?: boolean; onNavigate?: () => void; onScrollChange?: (scrolled: boolean) => void }) {
   const { user } = useAuth();
   const { history } = useChatHistory();
   const [query, setQuery] = useState("");
@@ -72,7 +72,7 @@ export default function WorkspaceSearch({ library = false, onNavigate }: { libra
               </TabsList>
             </Tabs>
         </div>
-        <div className="flex-1 overflow-y-auto px-4 pb-6 pt-2 sm:px-8">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-2 sm:px-8" onScroll={(event) => onScrollChange?.(event.currentTarget.scrollTop > 8)}>
           <div className="mx-auto max-w-3xl">
             {loading ? <p role="status" className="py-12 text-center text-muted-foreground">Loading…</p> : error ? <p role="alert" className="py-12 text-center text-destructive">Search couldn’t load. Please try refreshing.</p> : results.length === 0 ? <div className="py-16 text-center text-muted-foreground"><SearchIcon className="mx-auto mb-4 h-8 w-8" /><p>{query ? "No results found" : "No items yet"}</p></div> : categories.filter((entry) => category === "all" || category === entry.value).map((entry) => {
               const group = results.filter((item) => item.category === entry.value);

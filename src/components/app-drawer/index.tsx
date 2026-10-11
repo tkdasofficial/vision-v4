@@ -33,7 +33,7 @@ export function AppDrawerView({ onClose, onNewChat, onSelectChat, activeChatId, 
   };
 
   return <div className="app-drawer relative flex h-[100dvh] w-full flex-col overflow-hidden bg-background text-foreground" data-scrolled={scrolled}>
-    <header className="drawer-top relative z-10 shrink-0 px-4 pb-5 pt-[max(12px,env(safe-area-inset-top))] sm:px-8">
+    <header className="drawer-top absolute inset-x-0 top-0 z-10 px-4 pb-6 pt-[max(12px,env(safe-area-inset-top))] sm:px-8">
       <div className="mx-auto grid max-w-4xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <div className="flex min-w-0 items-center gap-3">
           {searching && <Button variant="floating" size="icon" className="size-11 shrink-0" aria-label="Back to drawer" title="Back to drawer" onClick={() => setSearching(false)}><ArrowLeft /></Button>}
@@ -46,7 +46,7 @@ export function AppDrawerView({ onClose, onNewChat, onSelectChat, activeChatId, 
       </div>
     </header>
 
-    {searching ? <WorkspaceSearch onNavigate={onClose} /> : <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-28 sm:px-8" onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 8)}>
+    {searching ? <div className="flex min-h-0 flex-1 flex-col pt-[max(84px,calc(env(safe-area-inset-top)+72px))]"><WorkspaceSearch onNavigate={onClose} onScrollChange={setScrolled} /></div> : <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-28 pt-[max(84px,calc(env(safe-area-inset-top)+72px))] sm:px-8" onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 8)}>
       <div className="mx-auto max-w-4xl">
         <SidebarFeatures onNavigate={onClose} />
         <section aria-label="Recent chats" className="mt-9">
