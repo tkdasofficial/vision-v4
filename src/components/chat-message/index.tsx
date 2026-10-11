@@ -391,10 +391,12 @@ const ActionButton = ({
    "Working on it" note → slim full-width status card (live stage + timer) → big title + structured answer. */
 const DEEP_LABELS: Record<DeepStage, string> = {
   thinking: "Thinking", analyzing: "Analyzing your request", researching: "Researching", working: "Working on it",
-  crafting: "Crafting the answer", done: "Done", failed: "Couldn't finish",
+  crafting: "Preparing final response", done: "Done", failed: "Couldn't finish",
+  planning: "Preparing execution plan", generating: "Generating individual tasks", verifying: "Verifying results",
+  correcting: "Correcting identified issues", validating: "Running final validation",
 };
 
-const DeepStatusCard = ({ stage, seconds, since }: { stage: DeepStage; seconds?: number; since: Date }) => {
+const DeepStatusCard = ({ stage, seconds, since, detail }: { stage: DeepStage; seconds?: number; since: Date; detail?: string }) => {
   const live = stage !== "done" && stage !== "failed";
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
@@ -412,7 +414,7 @@ const DeepStatusCard = ({ stage, seconds, since }: { stage: DeepStage; seconds?:
         : stage === "done" ? <Check className="size-3.5 shrink-0 text-primary" />
         : <AlertCircle className="size-3.5 shrink-0 text-destructive" />}
       <span key={stage} className="truncate font-medium text-foreground animate-fade-in">
-        {DEEP_LABELS[stage]}{live ? "…" : stage === "done" && secs ? ` · thought for ${secs}s` : ""}
+        {DEEP_LABELS[stage]}{live && detail ? ` · ${detail}` : ""}{live ? "…" : stage === "done" && secs ? ` · thought for ${secs}s` : ""}
       </span>
       {live && secs !== undefined && <span className="ml-auto shrink-0 tabular-nums text-muted-foreground">{secs}s</span>}
     </div>
@@ -449,7 +451,7 @@ const DeepReplyContent = ({ message, deep }: { message: ChatMessageType; deep: N
       <p className="text-sm text-muted-foreground">
         {done ? "Here's what I worked out." : stage === "failed" ? "I couldn't finish this one." : "I'm working on it — thinking it through and checking the result before I answer."}
       </p>
-      <DeepStatusCard stage={stage} seconds={deep.seconds} since={message.timestamp} />
+      <DeepStatusCard stage={stage} seconds={deep.seconds} since={message.timestamp} detail={deep.detail} />
       {(done || stage === "failed") && message.content && (
         <article className="animate-fade-in pt-2">
           {title && <h2 className="font-display text-2xl sm:text-[28px] font-bold leading-tight tracking-tight text-foreground py-4">{title}</h2>}
