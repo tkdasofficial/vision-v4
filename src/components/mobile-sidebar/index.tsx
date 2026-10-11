@@ -58,7 +58,10 @@ const MobileSidebar = ({ open, onClose, onNewChat, onSelectChat, isMainChat, act
           </Button>
         </div>
 
+        <div role="separator" aria-orientation="horizontal" className="mx-8 h-px shrink-0 bg-sidebar-border" />
+
         <SidebarFeatures onNavigate={onClose} />
+
 
         {chatHistory.length > 0 && (
           <div className="px-3 pt-4 pb-2 min-h-0 flex-1 overflow-y-auto">

@@ -12,3 +12,4 @@
 - [ ] Publish so the live site gets the runtime + barcodes (needs user)
 - [x] Deep Thinking execution engine (task decomposition, per-task verify/correct, final validation, persistence, real progress) — 15 engine tests + live run verified
 - [x] Persistent app caching (service worker, IndexedDB chat cache, persistent storage request); browser behaviour on the published site not yet verified
+- [x] Inset horizontal divider (32px each side) between sidebar header and page buttons, on desktop and mobile menus; measured in browser
