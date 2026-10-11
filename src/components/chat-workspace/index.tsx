@@ -374,12 +374,12 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       let deepTokens = false;
       let deepStageIdx = 0;
       const setDeepStage = (stage: DeepStage, detail?: string) => setMessages((prev) => prev.map((m) => (m.id === replyId ? { ...m, deep: { stage, detail } } : m)));
-      let deepReal = false; // once the server reports real stages, the placeholder ticker stops
+      let deepReal = false; let lastDeep: { stage: DeepStage; detail?: string } = { stage: "analyzing" }; // once the server reports real stages, the placeholder ticker stops
       const STATUS_MAP: Record<string, DeepStage> = { analyzing: "analyzing", planning: "planning", generating: "generating", verifying: "verifying", correcting: "correcting", validating: "validating", assembling: "crafting" };
       let deepTicker: number | undefined;
       const deepShow = deep ? window.setTimeout(() => {
         clearTimeout(phaseTimer); setIsTyping(false);
-        setMessages((prev) => prev.some((m) => m.id === replyId) ? prev : [...prev, { id: replyId, role: "assistant", content: "", timestamp: new Date(), toolId: tool?.id, executionMode: "deep", deep: { stage: "analyzing" } }]);
+        setMessages((prev) => prev.some((m) => m.id === replyId) ? prev : [...prev, { id: replyId, role: "assistant", content: "", timestamp: new Date(), toolId: tool?.id, executionMode: "deep", deep: lastDeep }]);
         deepStageIdx = 1;
         deepTicker = window.setInterval(() => {
           if (deepTokens || deepReal) return;
@@ -403,7 +403,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
           ? prev.map((m) => (m.id === replyId ? { ...m, content: visible } : m))
           : [...prev, { id: replyId, role: "assistant", content: visible, timestamp: new Date(), toolId: tool?.id }]);
       }, tool?.id, { mode: taskMode, onMeta: (m) => { meta = m; }, signal: ctrl.signal, requestId: replyId, conversationId: chatId ?? undefined,
-        onStatus: (st, detail) => { const ds = STATUS_MAP[st]; if (!deep || !ds) return; deepReal = true; setMessages((prev) => prev.some((m) => m.id === replyId) ? prev.map((m) => (m.id === replyId ? { ...m, deep: { stage: ds, detail } } : m)) : prev); } }).finally(() => { stopDeepTimers(); if (abortRef.current === ctrl) abortRef.current = null; setStreaming(false); });
+        onStatus: (st, detail) => { const ds = STATUS_MAP[st]; if (!deep || !ds) return; deepReal = true; lastDeep = { stage: ds, detail }; setMessages((prev) => prev.some((m) => m.id === replyId) ? prev.map((m) => (m.id === replyId ? { ...m, deep: { stage: ds, detail } } : m)) : prev); } }).finally(() => { stopDeepTimers(); if (abortRef.current === ctrl) abortRef.current = null; setStreaming(false); });
       const stopped = ctrl.signal.aborted;
       const replyText = finalText || (stopped ? "Stopped." : "I couldn't come up with an answer. Please try again.");
       let reply: ChatMessageType = { id: replyId, role: "assistant", content: replyText, timestamp: new Date(), toolId: tool?.id, executionMode: deep ? "deep" : meta.executionMode,
