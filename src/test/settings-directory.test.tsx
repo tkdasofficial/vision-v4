@@ -5,10 +5,26 @@ const mocks = vi.hoisted(() => ({ navigate: vi.fn(), signOut: vi.fn(), isAdmin: 
 vi.mock("@/lib/router-compat", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/context/AuthContext", () => ({ useAuth: () => ({ profile: { full_name: "Taylor Morgan", email: "taylor@example.com" }, user: null, isAdmin: mocks.isAdmin, signOut: mocks.signOut }) }));
 import SettingsDirectory, { SETTINGS_CATEGORIES } from "@/pages/settings";
+import { SettingsPage } from "@/components/settings/settings-ui";
 
 afterEach(() => { cleanup(); vi.clearAllMocks(); mocks.isAdmin = false; });
 
 describe("Settings directory", () => {
+  it("always returns to AppDrawer even when browser history contains other pages", () => {
+    const historyLength = vi.spyOn(window.history, "length", "get").mockReturnValue(5);
+    try {
+      render(<SettingsDirectory />);
+      fireEvent.click(screen.getByRole("button", { name: "Back", exact: true }));
+      expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/drawer");
+    } finally {
+      historyLength.mockRestore();
+    }
+  });
+  it.each([...SETTINGS_CATEGORIES.map(({ title }) => title), "Reset password"])("returns %s to main Settings regardless of browser history", (title) => {
+    render(<SettingsPage title={title}><p>Content</p></SettingsPage>);
+    fireEvent.click(screen.getByRole("button", { name: "Back", exact: true }));
+    expect(mocks.navigate).toHaveBeenCalledExactlyOnceWith("/settings");
+  });
   it("preserves every category and account, upgrade, help and legal destinations", () => {
     render(<SettingsDirectory />);
     for (const category of SETTINGS_CATEGORIES) {

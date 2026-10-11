@@ -5,14 +5,14 @@ import { useNavigate } from "@/lib/router-compat";
 import { cn } from "@/lib/utils";
 
 /** Page frame for every Settings sub-page. */
-export function SettingsPage({ title, children, loading, backTo = "/settings" }: { title: string; children: ReactNode; loading?: boolean; backTo?: string }) {
+export function SettingsPage({ title, children, loading }: { title: string; children: ReactNode; loading?: boolean }) {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   return (
     <div className="app-drawer relative grid h-[100dvh] grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden bg-settings-canvas text-foreground" data-scrolled={scrolled}>
       <header className="drawer-top relative z-10 col-start-1 row-start-1 self-start px-4 pb-5 pt-[max(12px,env(safe-area-inset-top))] sm:px-8">
         <div className="mx-auto grid h-11 max-w-xl grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-2">
-          <Button variant="floating" size="icon" className="size-11 rounded-full [&_svg]:size-5" aria-label="Back" title="Back" onClick={() => navigate(backTo)}><ArrowLeft /></Button>
+          <Button variant="floating" size="icon" className="size-11 rounded-full [&_svg]:size-5" aria-label="Back" title="Back" onClick={() => navigate("/settings")}><ArrowLeft /></Button>
           <h1 className="drawer-floating flex h-11 min-w-0 max-w-full items-center justify-center justify-self-center rounded-full px-4 text-center font-display text-lg font-semibold sm:px-6 sm:text-xl"><span className="truncate">{title}</span></h1>
           <span aria-hidden="true" />
         </div>
