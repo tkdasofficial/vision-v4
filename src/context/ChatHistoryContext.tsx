@@ -1,3 +1,4 @@
+import { normalizeChatTitle } from "@/lib/chat-title";
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from "react";
 import type { ChatMessage } from "@/lib/types";
 import { supabase } from "@/lib/cloud/client";
@@ -261,7 +262,9 @@ export const ChatHistoryProvider = ({ children }: { children: ReactNode }) => {
     return tempId;
   }, [user]);
 
-  const renameChat = useCallback((id: string, newTitle: string) => {
+  const renameChat = useCallback((id: string, rawTitle: string) => {
+    const newTitle = normalizeChatTitle(rawTitle);
+    if (!newTitle) return;
     setHistory((prev) => prev.map((c) => (c.id === id ? { ...c, title: newTitle } : c)));
 
     supabase
