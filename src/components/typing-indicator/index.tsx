@@ -46,9 +46,6 @@ export default TypingIndicator;
 export function detectPhase(content: string, toolId?: string): ThinkingPhase {
   const lower = content.toLowerCase();
   
-  if (/\b(generate|create|make|draw|design)\b.*\b(image|picture|photo|illustration|graphic|visual|thumbnail|art)\b/.test(lower)) {
-    return "creating";
-  }
   if (/\b(analy[sz]e|review|evaluate|assess|compare)\b/.test(lower)) {
     return "analyzing";
   }
@@ -63,9 +60,7 @@ export function detectPhase(content: string, toolId?: string): ThinkingPhase {
   }
   
   if (toolId === "script-writer") return "writing";
-  if (toolId === "thumbnail-designer") return "creating";
   if (toolId === "seo-optimizer") return "optimizing";
-  if (toolId === "image-generator") return "creating";
   if (toolId === "content-optimizer") return "optimizing";
   if (toolId === "content-analyzer") return "analyzing";
   

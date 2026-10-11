@@ -1,5 +1,4 @@
 import { type LucideIcon } from "lucide-react";
-import type { AgentPlan } from "./agent-executor";
 
 export type SamplePrompt = { icon: LucideIcon; label: string; prompt: string };
 
@@ -99,25 +98,23 @@ export type ChatMessage = {
   timestamp: Date;
   toolId?: string;
   imageUrl?: string;
-  videos?: StockVideo[];
-  videoGeneration?: VideoGeneration;
-  videoEdit?: VideoEditRequest;
   webApp?: WebAppData;
   zipAnalysis?: ZipAnalysis;
   /** Backend job (ZIP analysis, project or code export) shown with live status. */
   job?: import("./builder/statuses").JobView;
   convertFile?: File;
-  ttsScript?: string;
   generatedFile?: {
     fileName: string;
     content: string;
     mimeType: string;
     format: string;
   };
-  agentPlan?: AgentPlan;
-  story?: StoryRequest;
   /** Research report saved as a document; rendered as a compact card. */
   document?: { id: string; title: string };
   /** Internal workflow the server used; never changes the selected mode. */
   executionMode?: string;
+  /** Deep Thinking Mode progress for this reply (status card + final answer). */
+  deep?: { stage: DeepStage; seconds?: number };
 };
+
+export type DeepStage = "thinking" | "analyzing" | "researching" | "working" | "crafting" | "done" | "failed";

@@ -43,9 +43,7 @@ import { Route as AdminSupportRouteImport } from './routes/admin.support'
 import { Route as AdminSystemRouteImport } from './routes/admin.system'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
-import { Route as ApiEditImageRouteImport } from './routes/api/edit-image'
 import { Route as ApiFilesRouteImport } from './routes/api/files'
-import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 import { Route as ApiJobsRouteImport } from './routes/api/jobs'
 import { Route as AppSplatRouteImport } from './routes/app.$'
 import { Route as AuthForgetPasswordRouteImport } from './routes/auth.forget-password'
@@ -266,19 +264,9 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiEditImageRoute = ApiEditImageRouteImport.update({
-  id: '/api/edit-image',
-  path: '/api/edit-image',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiFilesRoute = ApiFilesRouteImport.update({
   id: '/api/files',
   path: '/api/files',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGenerateImageRoute = ApiGenerateImageRouteImport.update({
-  id: '/api/generate-image',
-  path: '/api/generate-image',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiJobsRoute = ApiJobsRouteImport.update({
@@ -563,9 +551,7 @@ export interface FileRoutesByFullPath {
   '/admin/system': typeof AdminSystemRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
-  '/api/edit-image': typeof ApiEditImageRoute
   '/api/files': typeof ApiFilesRoute
-  '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/jobs': typeof ApiJobsRouteWithChildren
   '/app/$': typeof AppSplatRoute
   '/auth/forget-password': typeof AuthForgetPasswordRoute
@@ -649,9 +635,7 @@ export interface FileRoutesByTo {
   '/admin/system': typeof AdminSystemRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
-  '/api/edit-image': typeof ApiEditImageRoute
   '/api/files': typeof ApiFilesRoute
-  '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/jobs': typeof ApiJobsRouteWithChildren
   '/app/$': typeof AppSplatRoute
   '/auth/forget-password': typeof AuthForgetPasswordRoute
@@ -738,9 +722,7 @@ export interface FileRoutesById {
   '/admin/system': typeof AdminSystemRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/chat': typeof ApiChatRoute
-  '/api/edit-image': typeof ApiEditImageRoute
   '/api/files': typeof ApiFilesRoute
-  '/api/generate-image': typeof ApiGenerateImageRoute
   '/api/jobs': typeof ApiJobsRouteWithChildren
   '/app/$': typeof AppSplatRoute
   '/auth/forget-password': typeof AuthForgetPasswordRoute
@@ -828,9 +810,7 @@ export interface FileRouteTypes {
     | '/admin/system'
     | '/admin/users'
     | '/api/chat'
-    | '/api/edit-image'
     | '/api/files'
-    | '/api/generate-image'
     | '/api/jobs'
     | '/app/$'
     | '/auth/forget-password'
@@ -914,9 +894,7 @@ export interface FileRouteTypes {
     | '/admin/system'
     | '/admin/users'
     | '/api/chat'
-    | '/api/edit-image'
     | '/api/files'
-    | '/api/generate-image'
     | '/api/jobs'
     | '/app/$'
     | '/auth/forget-password'
@@ -1002,9 +980,7 @@ export interface FileRouteTypes {
     | '/admin/system'
     | '/admin/users'
     | '/api/chat'
-    | '/api/edit-image'
     | '/api/files'
-    | '/api/generate-image'
     | '/api/jobs'
     | '/app/$'
     | '/auth/forget-password'
@@ -1078,9 +1054,7 @@ export interface RootRouteChildren {
   SupportRoute: typeof SupportRoute
   VerifyRoute: typeof VerifyRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
-  ApiEditImageRoute: typeof ApiEditImageRoute
   ApiFilesRoute: typeof ApiFilesRoute
-  ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ApiJobsRoute: typeof ApiJobsRouteWithChildren
   BillingPlansRoute: typeof BillingPlansRoute
   ChatChatIdRoute: typeof ChatChatIdRoute
@@ -1345,25 +1319,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/edit-image': {
-      id: '/api/edit-image'
-      path: '/api/edit-image'
-      fullPath: '/api/edit-image'
-      preLoaderRoute: typeof ApiEditImageRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/files': {
       id: '/api/files'
       path: '/api/files'
       fullPath: '/api/files'
       preLoaderRoute: typeof ApiFilesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/generate-image': {
-      id: '/api/generate-image'
-      path: '/api/generate-image'
-      fullPath: '/api/generate-image'
-      preLoaderRoute: typeof ApiGenerateImageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/jobs': {
@@ -1877,9 +1837,7 @@ const rootRouteChildren: RootRouteChildren = {
   SupportRoute: SupportRoute,
   VerifyRoute: VerifyRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
-  ApiEditImageRoute: ApiEditImageRoute,
   ApiFilesRoute: ApiFilesRoute,
-  ApiGenerateImageRoute: ApiGenerateImageRoute,
   ApiJobsRoute: ApiJobsRouteWithChildren,
   BillingPlansRoute: BillingPlansRoute,
   ChatChatIdRoute: ChatChatIdRoute,

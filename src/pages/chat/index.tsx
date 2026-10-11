@@ -1,17 +1,16 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useParams, useNavigate } from "@/lib/router-compat";
-import type { CreationMode } from "@/lib/creation-references";
 import { type AITool } from "@/lib/types";
 import { useChatHistory } from "@/context/ChatHistoryContext";
 import DesktopSidebar from "@/components/desktop-sidebar";
 import MobileSidebar from "@/components/mobile-sidebar";
 import ChatWorkspace from "@/components/chat-workspace";
 
-const Index = ({ isIncognito = false, creationMode }: { isIncognito?: boolean; creationMode?: CreationMode }) => {
-  const params = useParams<{ chatId: string; imageChatId: string; videoChatId: string }>();
-  const urlChatId = params.chatId ?? params.imageChatId ?? params.videoChatId;
-  const base = creationMode === "images" ? "/images" : creationMode === "videos" ? "/videos" : "/chat";
+const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
+  const params = useParams<{ chatId: string }>();
+  const urlChatId = params.chatId;
+  const base = "/chat";
   const navigate = useNavigate();
   const { getChatById, history, loadChatMessages } = useChatHistory();
 
@@ -121,8 +120,7 @@ const Index = ({ isIncognito = false, creationMode }: { isIncognito?: boolean; c
             </>}
           </div>
         ) : <ChatWorkspace
-          key={`${isIncognito}-${creationMode}-${chatKey}`}
-          creationMode={creationMode}
+          key={`${isIncognito}-${chatKey}`}
           tool={selectedTool}
           isIncognito={isIncognito}
           onIncognitoChat={handleIncognitoChat}

@@ -9,13 +9,11 @@ import { Button } from "@/components/ui/button";
 import { PromptInput, PromptInputTextarea, PromptInputFooter, PromptInputSubmit } from "@/components/ai-elements/prompt-input";
 import ModeSelector from "@/components/mode-selector";
 import type { ChatMode } from "@/lib/ai/modes";
-import type { CreationMode } from "@/lib/creation-references";
 import { appendTranscript } from "@/lib/append-transcript";
 import { readCachedPrefs } from "@/lib/settings";
 
 type Props = {
   toolName?: string;
-  creationMode?: CreationMode;
   onSend: (message: string, imageData?: { base64: string; mimeType: string }, taskMode?: ChatMode, extras?: { typed: string; pasted: PastedBlock[] }) => void;
   onZipUpload?: (file: File) => void;
   onFileConvert?: (file: File) => void;
@@ -31,7 +29,7 @@ const RemoveBtn = ({ label, onClick }: { label: string; onClick: () => void }) =
   <button type="button" aria-label={label} onClick={onClick} className="absolute -right-2 -top-2 flex size-8 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm"><X className="size-4" /></button>
 );
 
-const ChatInput = ({ toolName, onSend, onZipUpload, onFileConvert, onSendFiles, disabled, creationMode, busy, onStop }: Props) => {
+const ChatInput = ({ toolName, onSend, onZipUpload, onFileConvert, onSendFiles, disabled, busy, onStop }: Props) => {
   const [value, setValue] = useState("");
   const [attachedImage, setAttachedImage] = useState<{ base64: string; mimeType: string; preview: string } | null>(null);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
@@ -149,7 +147,7 @@ const ChatInput = ({ toolName, onSend, onZipUpload, onFileConvert, onSendFiles, 
       return;
     }
     onSend(
-      full || (attachedImage ? creationMode ? "Create using this image as reference" : "Analyze this image" : ""),
+      full || (attachedImage ? "Analyze this image" : ""),
       attachedImage ? { base64: attachedImage.base64, mimeType: attachedImage.mimeType } : undefined,
       taskMode,
       extras
@@ -277,8 +275,8 @@ const ChatInput = ({ toolName, onSend, onZipUpload, onFileConvert, onSendFiles, 
               onChange={(e) => { setValue(e.target.value); finalTranscriptRef.current = e.target.value; autoResize(); }}
               onKeyDown={handleKeyDown}
               onPaste={handlePaste}
-              placeholder={creationMode ? `Describe your ${creationMode === "images" ? "image" : "video"}` : `Ask Vision${animatedDots}`}
-              aria-label={creationMode ? "Creation prompt" : "Message Vision"}
+              placeholder={`Ask Vision${animatedDots}`}
+              aria-label="Message Vision"
               rows={1}
               className="w-full bg-transparent text-foreground text-[15px] placeholder:text-muted-foreground resize-none outline-none min-h-[44px] max-h-[200px] py-3 px-4 focus-visible:ring-0! focus-visible:ring-offset-0! shadow-none!"
             />
@@ -294,7 +292,7 @@ const ChatInput = ({ toolName, onSend, onZipUpload, onFileConvert, onSendFiles, 
                 className="hidden"
               />
               <AttachMenu
-                imageOnly={!!creationMode}
+                imageOnly={false}
                 onPick={(kind) => {
                   const el = fileInputRef.current;
                   if (!el) return;
@@ -304,7 +302,7 @@ const ChatInput = ({ toolName, onSend, onZipUpload, onFileConvert, onSendFiles, 
                   el.click();
                 }}
               />
-              {!creationMode && <ModeSelector selectedMode={taskMode} onModeChange={setTaskMode} />}
+              {<ModeSelector selectedMode={taskMode} onModeChange={setTaskMode} />}
             </div>
 
             <div className={cn(
@@ -361,7 +359,7 @@ const ChatInput = ({ toolName, onSend, onZipUpload, onFileConvert, onSendFiles, 
           </PromptInputFooter>
         </PromptInput>
 
-        {!creationMode && <p className="text-[11px] text-muted-foreground text-center mt-2 hidden sm:block">
+        {<p className="text-[11px] text-muted-foreground text-center mt-2 hidden sm:block">
           Vision may produce inaccurate results. Verify important information.
         </p>}
       </div>

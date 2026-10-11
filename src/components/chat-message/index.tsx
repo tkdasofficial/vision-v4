@@ -1,20 +1,15 @@
 import { useState, useCallback, useEffect, useRef, useMemo, forwardRef } from "react";
-import type { ChatMessage as ChatMessageType, StockVideo } from "@/lib/types";
-import { Copy, Check, Play, ExternalLink, Download, Volume2, VolumeX, ThumbsUp, ThumbsDown, Flag, FileCode } from "lucide-react";
+import type { ChatMessage as ChatMessageType, DeepStage } from "@/lib/types";
+import { Copy, Check, Volume2, VolumeX, ThumbsUp, ThumbsDown, Flag, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import type { Components } from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
-import VideoGenerationCard from "@/components/video-generation-card";
-import VideoEditorCard from "@/components/video-editor-card";
 import WebAppPreviewCard from "@/components/web-app-preview-card";
 import ZipAnalysisCard from "@/components/zip-analysis-card";
 import JobCard from "@/components/job-card";
 import FileConverterCard from "@/components/file-converter-card";
-import TTSCard from "@/components/tts-card";
 import FileCreatorCard from "@/components/file-creator-card";
-import AgentProgressCard from "@/components/agent-progress-card";
-import StoryFlowCard from "@/components/story/story-flow-card";
 import CodeBlock from "@/components/chat/code-block";
 import UserMessage from "@/components/chat/user-message";
 import DocumentCard from "@/components/chat/document-card";
@@ -313,7 +308,8 @@ const ChatMessage = forwardRef<HTMLDivElement, Props>(({ message, isNew = false 
 
             {/* Render segments: text → task card → text */}
             {message.document && <DocumentCard id={message.document.id} title={message.document.title} />}
-            {message.content && !message.document && !(message.job?.type === "code_export" && message.job.status !== "failed") && segments.map((seg, i) => {
+            {message.deep && <DeepReply message={message} />}
+            {message.content && !message.deep && !message.document && !(message.job?.type === "code_export" && message.job.status !== "failed") && segments.map((seg, i) => {
               const displayed = seg.content.slice(0, charCounts[i] ?? seg.content.length);
               const isActive = activeSegIdx === i;
               const segVisible = charCounts[i] > 0 || !shouldAnimate;
@@ -336,19 +332,6 @@ const ChatMessage = forwardRef<HTMLDivElement, Props>(({ message, isNew = false 
               );
             })}
 
-            {message.videos && message.videos.length > 0 && (
-              <VideoGrid videos={message.videos} />
-            )}
-            {message.videoGeneration && (
-              <VideoGenerationCard
-                topic={message.videoGeneration.topic}
-                duration={message.videoGeneration.duration}
-                aspectRatio={message.videoGeneration.aspectRatio}
-              />
-            )}
-            {message.videoEdit && (
-              <VideoEditorCard userMessage={message.videoEdit.userMessage} />
-            )}
             {message.webApp && (
               <WebAppPreviewCard project={message.webApp} />
             )}
@@ -359,21 +342,11 @@ const ChatMessage = forwardRef<HTMLDivElement, Props>(({ message, isNew = false 
             {message.convertFile && (
               <FileConverterCard file={message.convertFile} />
             )}
-            {message.ttsScript && (
-              <TTSCard script={message.ttsScript} />
-            )}
             {message.generatedFile && (
               <FileCreatorCard file={message.generatedFile} />
             )}
-            {message.agentPlan && (
-              <AgentProgressCard plan={message.agentPlan} />
-            )}
-            {message.story && (
-              <StoryFlowCard projectId={message.story.projectId} initialPrompt={message.story.initialPrompt} />
-            )}
-
             {/* Action bar */}
-            {message.content && typingDone && (
+            {message.content && typingDone && (!message.deep || message.deep.stage === "done") && (
               <div className="flex items-center gap-0.5 pt-1">
                 <ActionButton onClick={handleSpeak} active={speaking} title={speaking ? "Stop listening" : "Listen"}>
                   {speaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
@@ -429,63 +402,72 @@ const ActionButton = ({
   </button>
 );
 
-const VideoGrid = ({ videos }: { videos: StockVideo[] }) => {
-  const [playingId, setPlayingId] = useState<number | null>(null);
+/* ── Deep Thinking Mode reply ──
+   "Working on it" note → slim full-width status card (live stage + timer) → big title + structured answer. */
+const DEEP_LABELS: Record<DeepStage, string> = {
+  thinking: "Thinking", analyzing: "Analyzing your request", researching: "Researching", working: "Working on it",
+  crafting: "Crafting the answer", done: "Done", failed: "Couldn't finish",
+};
 
+const DeepStatusCard = ({ stage, seconds, since }: { stage: DeepStage; seconds?: number; since: Date }) => {
+  const live = stage !== "done" && stage !== "failed";
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    if (!live) return;
+    const start = new Date(since).getTime();
+    const tick = () => setElapsed(Math.max(0, Math.round((Date.now() - start) / 1000)));
+    tick();
+    const t = window.setInterval(tick, 1000);
+    return () => window.clearInterval(t);
+  }, [live, since]);
+  const secs = live ? elapsed : seconds;
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {videos.map((video) => (
-        <div
-          key={video.id}
-          className="relative group/vid rounded-xl border border-border overflow-hidden bg-card"
-        >
-          {playingId === video.id ? (
-            <video
-              src={video.previewUrl}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full aspect-video object-cover"
-              onClick={() => setPlayingId(null)}
-            />
-          ) : (
-            <div
-              className="relative cursor-pointer"
-              onClick={() => setPlayingId(video.id)}
-            >
-              <img
-                src={video.image}
-                alt="Video thumbnail"
-                className="w-full aspect-video object-cover"
-              />
-              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover/vid:opacity-100 transition-opacity">
-                <div className="w-10 h-10 rounded-full bg-background/90 flex items-center justify-center">
-                  <Play className="w-4 h-4 text-foreground ml-0.5" />
-                </div>
-              </div>
-              <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/70 text-white text-[10px] font-medium">
-                {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, "0")}
-              </span>
-            </div>
-          )}
-          <div className="px-2.5 py-2 flex items-center justify-between">
-            <p className="text-[11px] text-muted-foreground truncate flex-1">
-              by {video.user.name}
-            </p>
-            <div className="flex items-center gap-1">
-              <a href={video.videoUrl} target="_blank" rel="noopener noreferrer" className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors" title="Download HD">
-                <Download className="w-3.5 h-3.5" />
-              </a>
-              <a href={video.url} target="_blank" rel="noopener noreferrer" className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors" title="View on Pexels">
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
-          </div>
-        </div>
-      ))}
+    <div role="status" aria-live="polite" className="flex h-8 w-full items-center gap-2 rounded-lg border border-border bg-muted/60 px-3 text-xs">
+      {live ? <Loader2 className="size-3.5 shrink-0 animate-spin text-primary" />
+        : stage === "done" ? <Check className="size-3.5 shrink-0 text-primary" />
+        : <AlertCircle className="size-3.5 shrink-0 text-destructive" />}
+      <span key={stage} className="truncate font-medium text-foreground animate-fade-in">
+        {DEEP_LABELS[stage]}{live ? "…" : stage === "done" && secs ? ` · thought for ${secs}s` : ""}
+      </span>
+      {live && secs !== undefined && <span className="ml-auto shrink-0 tabular-nums text-muted-foreground">{secs}s</span>}
     </div>
   );
 };
 
+/** Pulls the leading "# Title" out of the answer so it can be shown large. */
+export function splitDeepTitle(content: string): { title: string | null; body: string } {
+  const m = content.match(/^\s*#{1,2}\s+(.+?)\s*(?:\n|$)/);
+  if (!m) return { title: null, body: content };
+  return { title: m[1].replace(/[*_`]/g, "").trim(), body: content.slice(m[0].length).trim() };
+}
+
+const deepProse = [
+  proseClasses,
+  "[&_h2]:text-xl [&_h2]:mt-7 [&_h2]:mb-3 [&_h2]:pb-1.5 [&_h2]:border-b [&_h2]:border-border",
+  "[&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
+  "[&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:marker:text-primary",
+  "[&_p]:text-[15px] [&_li]:text-[15px]",
+].join(" ");
+
+const DeepReply = ({ message }: { message: ChatMessageType }) => {
+  const stage = message.deep!.stage;
+  const done = stage === "done" && !!message.content;
+  const { title, body } = useMemo(() => splitDeepTitle(message.content || ""), [message.content]);
+  return (
+    <div className="w-full space-y-3">
+      <p className="text-sm text-muted-foreground">
+        {done ? "Here's what I worked out." : stage === "failed" ? "I couldn't finish this one." : "I'm working on it — thinking it through and checking the result before I answer."}
+      </p>
+      <DeepStatusCard stage={stage} seconds={message.deep!.seconds} since={message.timestamp} />
+      {(done || stage === "failed") && message.content && (
+        <article className="animate-fade-in pt-2">
+          {title && <h2 className="font-display text-2xl sm:text-[28px] font-bold leading-tight tracking-tight text-foreground py-4">{title}</h2>}
+          <div className={cn("prose prose-neutral dark:prose-invert max-w-none text-foreground break-words", deepProse)}>
+            <ReactMarkdown components={mdComponents}>{body}</ReactMarkdown>
+          </div>
+        </article>
+      )}
+    </div>
+  );
+};
 export default ChatMessage;
