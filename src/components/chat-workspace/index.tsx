@@ -5,7 +5,8 @@ import { useNavigate } from "@/lib/router-compat";
 import ChatActionsMenu from "@/components/chat-actions-menu";
 import AnnouncementBanner from "@/components/announcement-banner";
 
-import type { AITool, ChatMessage as ChatMessageType, MessageAttachment, PastedBlock } from "@/lib/types";
+import type { AITool, ChatMessage as ChatMessageType, DeepStage, MessageAttachment, PastedBlock } from "@/lib/types";
+import { routeRequest } from "@/lib/ai/request-route";
 import { Button } from "@/components/ui/button";
 import { useChatHistory } from "@/context/ChatHistoryContext";
 import ChatInput from "@/components/chat-input";
@@ -293,54 +294,15 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       if (researchPhaseTimer) clearTimeout(researchPhaseTimer);
     };
 
-    // Tool requests (documents, PDFs, data, charts, QR, security, math, web pages) run as a backend agent task.
-    const isToolTask = (!taskMode || taskMode === "default") && (
-      /\b(qr\s*code|barcode|code ?128|code ?39|ean-?13|ean-?8|upc-?[ae]|sha-?(1|256|384|512)|checksum|hash of|base64|jwt|uuid|generate (a )?password|strong password|unit conver|convert \d|calculate|chart|bar graph|line graph|pie chart|diagram|flowchart|mermaid|gantt|word document|\.docx|docx|epub|e-?book|fetch (the )?(page|url|website)|scrape|extract (text|links)|validate (these|this|the)|redact|privacy scan|yaml|json to csv|csv to json)\b/i.test(content)
-      || (/\b(create|make|generate|write|export|save|convert)\b/i.test(content) && /\b(pdf|docx|word|epub|excel|xlsx|spreadsheet|csv)\b/i.test(content))
-      || /https?:\/\/\S+/.test(content) && /\b(summari[sz]e|extract|fetch|read|save|convert)\b/i.test(content));
-    if (isToolTask) {
+    // Explicit tools, files and projects run as backend jobs; everything else is a written answer.
+    const route = routeRequest(content, taskMode ?? "default");
+    if (route.kind !== "chat") {
       clearPhaseTimers();
       setIsTyping(false);
-      await runInlineJob("agent_task", { prompt: content }, sessionId);
-      return;
-    }
-
-    // Agent mode: web apps & games (2D/3D) builder detection
-    const isAgent = (!taskMode || taskMode === "default") && /\b(build|create|make|generate)\b.*\b(web\s*app|website|landing\s*page|dashboard|portfolio|SPA|single.page.app|game|2d|3d|platformer|rpg|puzzle|arcade|shooter|racing|runner|fighting|tower.defense|card.game|tetris|snake|pong|breakout|flappy|chess|checkers|fps|open.world|sandbox|survival|roguelike|roguelite|metroidvania|beat.em.up|rhythm|simulation|strategy|mmorpg|moba|battle.royale)\b/i.test(content);
-
-    if (isAgent) {
-      // Built on the server as a tracked job; progress, files and the ZIP download appear in this message.
-      clearPhaseTimers();
-      setIsTyping(false);
-      await runInlineJob("project_generate", { prompt: content }, sessionId);
-      return;
-    }
-
-    // File creation detection — user wants AI to create/write a file
-    const fileFormatMatch = content.match(/\b(?:as|in|to|into)\s+(?:a\s+)?\.?(txt|pdf|md|html|css|csv|json|xml|js|ts|py|sql|yaml|toml|sh|bat|rtf|log|ini|cfg|env|xlsx|xls)\b/i)
-      || content.match(/\.?(txt|pdf|md|html|css|csv|json|xml|js|ts|py|sql|yaml|toml|sh|bat|rtf|xlsx|xls)\s+(?:file|format|document)/i)
-      || content.match(/\b(excel|spreadsheet|sheet|workbook)\b/i);
-    const isFileCreate = /\b(write|create|generate|make|draft|compose|prepare)\b.*\b(file|document|script|letter|resume|report|essay|article|blog|story|poem|contract|invoice|receipt|plan|outline|notes|summary|readme|changelog|license|config|template|list|schedule|agenda|minutes|proposal|brief|spec|documentation|manual|guide|tutorial|faq|terms|policy|privacy|spreadsheet|sheet|excel|workbook|budget|ledger|tracker|timesheet|roster|inventory|catalog|database|table)\b/i.test(content)
-      || /\b(save|export|download)\b.*\b(as|to|into)\b.*\b(txt|pdf|md|html|csv|json|xml|xlsx|xls|excel|file)\b/i.test(content)
-      || /\b(write|create)\b.*\b(txt|pdf|md|html|csv|json|xml|xlsx|xls)\b/i.test(content)
-      || /\b(create|make|generate|build)\b.*\b(excel|spreadsheet|sheet|workbook)\b/i.test(content);
-
-    const codeFmt = fileFormatMatch?.[1]?.toLowerCase();
-    if (isFileCreate && codeFmt && ["js", "ts", "py", "sql", "sh", "bat", "html", "css", "json", "yaml", "toml", "xml"].includes(codeFmt)) {
-      clearPhaseTimers();
-      setIsTyping(false);
-      await runInlineJob("code_export", { prompt: content, language: codeFmt }, sessionId);
-      return;
-    }
-
-    if (isFileCreate && !isAgent) {
-      // Documents are written on the server by the task agent; the file and download appear in this message.
-      const fmMatch = fileFormatMatch?.[1]?.toLowerCase();
-      const isExcelKeyword = /\b(excel|spreadsheet|sheet|workbook)\b/i.test(content);
-      const detectedFormat = isExcelKeyword && (!fmMatch || ["excel","spreadsheet","sheet","workbook"].includes(fmMatch)) ? "xlsx" : (fmMatch || "");
-      clearPhaseTimers();
-      setIsTyping(false);
-      await runInlineJob("agent_task", { prompt: detectedFormat ? `${content}\n\n(Save the result as a .${detectedFormat} file.)` : content }, sessionId);
+      if (route.kind === "tool") await runInlineJob("agent_task", { prompt: content }, sessionId);
+      else if (route.kind === "project") await runInlineJob("project_generate", { prompt: content }, sessionId);
+      else if (route.kind === "code_export") await runInlineJob("code_export", { prompt: content, language: route.language }, sessionId);
+      else await runInlineJob("agent_task", { prompt: `${content}\n\n(Save the result as a .${route.format} file.)` }, sessionId);
       return;
     }
 
@@ -389,20 +351,43 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
 
       const replyId = crypto.randomUUID();
       let started = false;
+      // Deep Thinking: think first, then a "working on it" note with a live status card; the answer appears when ready.
+      const deep = taskMode === "deep";
+      const deepStart = Date.now();
+      let deepTokens = false;
+      let deepStageIdx = 0;
+      const setDeepStage = (stage: DeepStage) => setMessages((prev) => prev.map((m) => (m.id === replyId ? { ...m, deep: { stage } } : m)));
+      let deepTicker: number | undefined;
+      const deepShow = deep ? window.setTimeout(() => {
+        clearTimeout(phaseTimer); setIsTyping(false);
+        setMessages((prev) => prev.some((m) => m.id === replyId) ? prev : [...prev, { id: replyId, role: "assistant", content: "", timestamp: new Date(), toolId: tool?.id, executionMode: "deep", deep: { stage: "analyzing" } }]);
+        deepStageIdx = 1;
+        deepTicker = window.setInterval(() => {
+          if (deepTokens) return;
+          deepStageIdx = Math.min(deepStageIdx + 1, DEEP_STAGES.length - 2);
+          setDeepStage(DEEP_STAGES[deepStageIdx]);
+        }, 2600);
+      }, 1400) : undefined;
+      const stopDeepTimers = () => { if (deepShow) clearTimeout(deepShow); if (deepTicker) clearInterval(deepTicker); };
       let meta: { executionMode: string; output: string } = { executionMode: "default", output: "chat" };
       const ctrl = new AbortController();
       abortRef.current = ctrl; setStreaming(true);
       const finalText = await streamChat(chatMessages, (full) => {
         const visible = full.replace(/<think>[\s\S]*?(<\/think>|$)/g, "").trimStart();
         if (!visible) return;
+        if (deep) {
+          if (!deepTokens) { deepTokens = true; setDeepStage("crafting"); }
+          return; // the finished answer is shown in one piece
+        }
         if (!started) { started = true; clearTimeout(phaseTimer); setIsTyping(false); }
         setMessages((prev) => prev.some((m) => m.id === replyId)
           ? prev.map((m) => (m.id === replyId ? { ...m, content: visible } : m))
           : [...prev, { id: replyId, role: "assistant", content: visible, timestamp: new Date(), toolId: tool?.id }]);
-      }, tool?.id, { mode: taskMode, onMeta: (m) => { meta = m; }, signal: ctrl.signal }).finally(() => { if (abortRef.current === ctrl) abortRef.current = null; setStreaming(false); });
+      }, tool?.id, { mode: taskMode, onMeta: (m) => { meta = m; }, signal: ctrl.signal }).finally(() => { stopDeepTimers(); if (abortRef.current === ctrl) abortRef.current = null; setStreaming(false); });
       const stopped = ctrl.signal.aborted;
       const replyText = finalText || (stopped ? "Stopped." : "I couldn't come up with an answer. Please try again.");
-      let reply: ChatMessageType = { id: replyId, role: "assistant", content: replyText, timestamp: new Date(), toolId: tool?.id, executionMode: meta.executionMode };
+      let reply: ChatMessageType = { id: replyId, role: "assistant", content: replyText, timestamp: new Date(), toolId: tool?.id, executionMode: deep ? "deep" : meta.executionMode,
+        ...(deep ? { deep: { stage: finalText ? "done" : "failed", seconds: Math.max(1, Math.round((Date.now() - deepStart) / 1000)) } as const } : {}) };
       // Research reports become a saved document shown as a compact card (saved once per reply).
       if (meta.output === "document" && finalText) {
         try {
@@ -419,12 +404,9 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       if (sessionId) updateChatMessages(sessionId, [...messages, userMsg, reply]);
     } catch (e: any) {
       if (e?.name === "AbortError") { clearTimeout(phaseTimer); setIsTyping(false); return; }
-      setMessages((prev) => [...prev, {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: `Sorry, an error occurred: ${e.message}`,
-        timestamp: new Date(),
-      }]);
+      const errMsg: ChatMessageType = { id: (Date.now() + 1).toString(), role: "assistant", content: `Sorry, an error occurred: ${e.message}`, timestamp: new Date() };
+      // Replace a Deep Thinking status card with the error instead of leaving it spinning.
+      setMessages((prev) => [...prev.filter((m) => !(m.deep && m.deep.stage !== "done" && !m.content)), errMsg]);
       clearTimeout(phaseTimer);
       setIsTyping(false);
     }
