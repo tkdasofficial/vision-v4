@@ -69,9 +69,8 @@ export function SettingsChoice<T extends string>({ label, hint, value, options, 
       <div role="radiogroup" aria-label={label} className="mt-3 flex flex-wrap gap-2">
         {options.map((o) => (
           <Button variant="floating"
-            key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}
-            className={cn("h-10 shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm",
-              value === o.value && "bg-foreground text-background hover:bg-foreground hover:text-background")}
+            key={o.value} type="button" role="radio" aria-checked={value === o.value} data-state={value === o.value ? "active" : "inactive"} onClick={() => onChange(o.value)}
+            className="drawer-filter h-10 shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm"
           >{o.label}</Button>
         ))}
       </div>
