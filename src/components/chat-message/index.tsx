@@ -470,3 +470,4 @@ const DeepReply = ({ message }: { message: ChatMessageType }) => {
     </div>
   );
 };
+export default ChatMessage;
