@@ -15,10 +15,16 @@ const CONNECT_TIMEOUT_MS = 30_000; // time allowed until the provider starts ans
 export async function streamFromProvider(t: ModelRef, messages: unknown[], opts: { maxTokens: number; deep: boolean }, signal: AbortSignal): Promise<ProviderResult> {
   const { url, key } = endpoint(t);
   if (!key) return { ok: false, status: 503, reason: "not configured" };
+  const { limiter } = await import("./rate-limiter");
+  if (!limiter.available(t.provider)) return { ok: false, status: 429, reason: "provider cooling down" };
+  let release: () => void;
+  try { release = await limiter.acquire(t.provider); } catch { return { ok: false, status: 429, reason: "rate limit queue full" }; }
+  const t0 = Date.now();
   const ctrl = new AbortController();
   const onAbort = () => ctrl.abort();
   signal.addEventListener("abort", onAbort);
   const timer = setTimeout(() => ctrl.abort(), CONNECT_TIMEOUT_MS);
+  const log = (status: number) => console.log("[ai:call]", JSON.stringify({ provider: t.provider, model: t.model, status, ms: Date.now() - t0, ...limiter.snapshot(t.provider) }));
   try {
     const res = await fetch(url, {
       method: "POST",
@@ -33,12 +39,24 @@ export async function streamFromProvider(t: ModelRef, messages: unknown[], opts:
       signal: ctrl.signal,
     });
     clearTimeout(timer);
-    if (res.ok && res.body) return { ok: true, body: res.body };
+    limiter.report(t.provider, res.status, res.headers.get("retry-after"));
+    log(res.status);
+    if (res.ok && res.body) {
+      // Hold the concurrency slot until the stream finishes.
+      const body = res.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({ flush() { release(); } }));
+      signal.addEventListener("abort", () => release(), { once: true });
+      return { ok: true, body };
+    }
+    release();
     const reason = (await res.text().catch(() => "")).slice(0, 300);
     return { ok: false, status: res.status, reason };
   } catch (e: any) {
     clearTimeout(timer);
-    return { ok: false, status: signal.aborted ? 499 : 504, reason: e?.message ?? "network error" };
+    release();
+    const status = signal.aborted ? 499 : 504;
+    if (status === 504) limiter.report(t.provider, 504);
+    log(status);
+    return { ok: false, status, reason: e?.message ?? "network error" };
   } finally {
     signal.removeEventListener("abort", onAbort);
   }

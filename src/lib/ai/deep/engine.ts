@@ -58,7 +58,7 @@ export type Progress = (stage: ProgressStage, detail?: string) => void;
 
 export const ENGINE_LIMITS: ExecutionLimits = {
   maxCorrectionsPerTask: 2, maxTotalAttempts: 40, maxFinalRounds: 2, budgetMs: 170_000,
-  concurrency: 2, maxRetries: 2, retryBaseMs: 800, contextCharBudget: 32_000, maxContinuations: 2,
+  concurrency: 4, maxRetries: 2, retryBaseMs: 800, contextCharBudget: 32_000, maxContinuations: 2,
 };
 
 /** Requests with a fixed number of separate deliverables are decomposed; everything else uses the single-answer pipeline. */
