@@ -89,7 +89,7 @@ export function validateCandidate(text: string, a: RequestAnalysis, finishReason
 export function checkTables(text: string): Issue[] {
   const issues: Issue[] = [];
   const body = text.replace(/```[\s\S]*?```/g, "");
-  const blocks = body.split(/\n(?!\s*\|)/).join("\n").match(/(?:^\s*\|.*\|\s*$\n?){2,}/gm) ?? [];
+  const blocks = body.match(/(?:^[ \t]*\|.*\|[ \t]*(?:\n|$)){2,}/gm) ?? [];
   const cells = (l: string) => l.trim().replace(/^\||\|$/g, "").split(/(?<!\\)\|/).map((c) => c.trim());
   blocks.forEach((b, bi) => {
     const lines = b.trim().split("\n");
