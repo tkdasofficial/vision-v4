@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Replace sidebars with full-screen AppDrawer, embed workspace search, refine floating transparent edges, and verify navigation/search.
 - [x] Simplify mobile code boxes and full-screen viewers; preserve desktop tools and verify neutral full-screen previews.
 - [x] Upgrade main code viewer and code preview: searchable numbered code, wrap/zoom controls, code/preview/split layouts, device sizes and frame-only reload; 22 tests pass and live HTML viewer controls verified with no page errors. Authenticated project compilation remains unverified without a signed-in session.
 - [x] Advanced chat tables: formatted Markdown tables, sorting, per-table copy and safe CSV downloads; 36 regression tests pass and browser controls verified in the actual chat renderer. Signed-in AI generation remains unverified because no custom-auth session is available.
