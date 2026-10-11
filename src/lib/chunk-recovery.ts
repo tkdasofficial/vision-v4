@@ -1,15 +1,17 @@
-/** Reloads the page when a page file fails to download (new version live, or the preview was mid-update). Up to 3 tries per 30s, waiting a bit longer each time. */
+/** Reloads the page once when a page file fails to download (a new version went live). At most one reload per 5 minutes, and never in the dev preview, where the dev server already refreshes the page itself — reloading there caused repeated reload loops. */
 export const CHUNK_ERROR_RE = /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|Loading chunk .* failed/i;
 const KEY = "vision_chunk_reload";
+const WINDOW_MS = 5 * 60_000;
+let pending = false;
 
 export function recoverFromChunkError(): boolean {
-  if (typeof window === "undefined") return false;
-  let s = { n: 0, at: 0 };
-  try { s = JSON.parse(sessionStorage.getItem(KEY) || "") || s; } catch { /* ignore */ }
-  if (Date.now() - s.at > 30_000) s = { n: 0, at: Date.now() };
-  if (s.n >= 3) return false;
-  s.n += 1;
-  sessionStorage.setItem(KEY, JSON.stringify(s));
-  setTimeout(() => window.location.reload(), 400 * s.n);
+  if (typeof window === "undefined" || import.meta.env.DEV) return false;
+  if (pending) return true;
+  let at = 0;
+  try { at = Number(sessionStorage.getItem(KEY)) || 0; } catch { /* ignore */ }
+  if (Date.now() - at < WINDOW_MS) return false;
+  try { sessionStorage.setItem(KEY, String(Date.now())); } catch { return false; }
+  pending = true;
+  setTimeout(() => window.location.reload(), 500);
   return true;
 }

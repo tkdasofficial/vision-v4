@@ -44,7 +44,9 @@ export const Route = createFileRoute("/api/chat")({
         const lastText = typeof last === "string" ? last : last.map((p: any) => p.text ?? "").join(" ");
         const legacyCoding = typeof body?.toolId === "string" && body.toolId.includes("code");
         const mode = legacyCoding ? "coding" : normalizeMode(body?.mode);
-        const task = classifyTask({ text: lastText, mode, hasMedia: lastHasMedia });
+        const prevUser = [...messages].slice(0, -1).reverse().find((m: any) => m.role === "user");
+        const previousText = prevUser ? (typeof prevUser.content === "string" ? prevUser.content : prevUser.content.map((p: any) => p.text ?? "").join(" ")) : undefined;
+        const task = classifyTask({ text: lastText, mode, hasMedia: lastHasMedia, previousText });
 
         const { candidatesFor } = await import("@/lib/ai/models.server");
         const { streamFromProvider } = await import("@/lib/ai/providers.server");
