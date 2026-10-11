@@ -47,7 +47,7 @@ describe("AppDrawer", () => {
     expect(search.compareDocumentPosition(filters) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     fireEvent.change(search, { target: { value: "Design" } });
     expect(search).toHaveValue("Design");
-    fireEvent.click(screen.getByRole("tab", { name: "Uploaded Files" }));
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Uploaded Files" }), { button: 0, ctrlKey: false });
     expect(screen.getByRole("tab", { name: "Uploaded Files" })).toHaveAttribute("data-state", "active");
     fireEvent.click(screen.getByRole("button", { name: "Clear search" }));
     expect(search).toHaveValue("");
