@@ -1,3 +1,4 @@
+import { normalizeChatTitle } from "@/lib/chat-title";
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from "react";
 import type { ChatMessage } from "@/lib/types";
 import { supabase } from "@/lib/cloud/client";
