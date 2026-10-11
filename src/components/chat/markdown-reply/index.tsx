@@ -3,6 +3,7 @@ import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import CodeBlock from "@/components/chat/code-block";
 import TextCopyBox from "@/components/chat/text-copy-box";
+import TableReply from "@/components/chat/table-reply";
 
 const proseLanguages = new Set(["", "text", "txt", "plain", "plaintext", "markdown", "md", "prompt"]);
 
@@ -24,5 +25,5 @@ const components: Components = {
 };
 
 export default function MarkdownReply({ children }: { children: string }) {
-  return <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>{children}</ReactMarkdown>;
+  return <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ ...components, table: ({ children: tableChildren, node }) => <TableReply node={node} markdown={children.slice(node?.position?.start.offset ?? 0, node?.position?.end.offset ?? children.length)}>{tableChildren}</TableReply> }}>{children}</ReactMarkdown>;
 }
