@@ -445,7 +445,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       setChatId(sid); setChatTitle(title); onChatCreated?.(sid);
     }
     await runInlineJob("agent_task", { prompt: content }, sid, files);
-  }, [chatId, addChat, tool, isIncognito, runInlineJob]);
+  }, [chatId, addChat, tool, isIncognito, runInlineJob, mode]);
 
   const handleZipUpload = useCallback(async (file: File) => {
     const userMsg: ChatMessageType = {
@@ -487,7 +487,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       setMessages((prev) => [...prev.filter((m) => m.id !== msgId), { id: msgId, role: "assistant", content: `Couldn't analyze the ZIP: ${e.message}`, timestamp: new Date() }]);
     }
     setIsTyping(false);
-  }, [chatId, addChat, tool, isIncognito]);
+  }, [chatId, addChat, tool, isIncognito, mode]);
 
   const handleFileConvert = useCallback((file: File) => {
     const cat = getCategory(file);
@@ -519,7 +519,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       timestamp: new Date(),
       convertFile: file,
     }]);
-  }, [chatId, addChat, tool, isIncognito]);
+  }, [chatId, addChat, tool, isIncognito, mode]);
 
   function formatBytes(bytes: number): string {
     if (bytes === 0) return "0 B";
