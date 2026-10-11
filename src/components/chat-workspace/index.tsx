@@ -441,6 +441,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
     if (!isIncognito && !chatId) {
       const title = content.slice(0, 60) || files[0].name;
       sid = addChat(title, content.slice(0, 120), tool?.id);
+      adoptDraftMode(browserStore(), sid, mode);
       setChatId(sid); setChatTitle(title); onChatCreated?.(sid);
     }
     await runInlineJob("agent_task", { prompt: content }, sid, files);
@@ -463,6 +464,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
     if (!isIncognito && !chatId) {
       const title = `ZIP: ${file.name}`;
       const newId = addChat(title, `Uploaded ${file.name}`, tool?.id);
+      adoptDraftMode(browserStore(), newId, mode);
       zipSession = newId;
       setChatId(newId);
       setChatTitle(title);
@@ -504,6 +506,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
     if (!isIncognito && !chatId) {
       const title = `Convert: ${file.name}`;
       const newId = addChat(title, `Convert ${file.name}`, tool?.id);
+      adoptDraftMode(browserStore(), newId, mode);
       setChatId(newId);
       setChatTitle(title);
       onChatCreated?.(newId);
