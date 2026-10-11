@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useSettings } from "@/hooks/useSettings";
@@ -18,7 +19,7 @@ export default function Notifications() {
     <SettingsPage title="Notifications" loading={loading}>
       <SettingsSection title="Browser notifications" description="Shown only while VISION is open in a tab you're not looking at.">
         <SettingsRow label="Permission" hint={perm === "granted" ? "Allowed" : perm === "denied" ? "Blocked in browser settings" : perm === "unsupported" ? "Not supported in this browser" : "Not allowed yet"}>
-          {perm === "default" && <button onClick={ask} className="rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground">Allow</button>}
+          {perm === "default" && <Button variant="floating" onClick={ask} className="rounded-full px-4 py-2 text-xs font-medium text-foreground">Allow</Button>}
         </SettingsRow>
         <SettingsToggle label="Chat replies" hint="When an AI reply finishes" checked={prefs.notifyReplies} disabled={perm !== "granted"} onChange={(v) => update({ notifyReplies: v })} />
         <SettingsToggle label="Research reports" hint="When a research report is ready" checked={prefs.notifyResearch} disabled={perm !== "granted"} onChange={(v) => update({ notifyResearch: v })} />

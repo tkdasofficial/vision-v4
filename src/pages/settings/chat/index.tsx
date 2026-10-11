@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Download, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -39,14 +40,14 @@ export default function ChatHistory() {
   return (
     <SettingsPage title="Chat & History">
       <SettingsSection title="Conversations" description="Incognito chats are never saved.">
-        <button onClick={onExport} disabled={!!busy} className="w-full flex items-center gap-3 rounded-full border border-border px-5 py-4 hover:bg-accent text-left disabled:opacity-50">
+        <Button variant="floating" onClick={onExport} disabled={!!busy} className="h-auto min-h-12 w-full justify-start whitespace-normal flex items-center gap-3 drawer-floating rounded-full px-5 py-4 hover:bg-accent text-left disabled:opacity-50">
           {busy === "export" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4 text-muted-foreground" />}
           <div><p className="text-sm font-medium">Export chats</p></div>
-        </button>
-        <button onClick={() => setConfirm(true)} disabled={!!busy} className="w-full flex items-center gap-3 rounded-full border border-destructive/30 px-5 py-4 hover:bg-destructive/5 text-left disabled:opacity-50">
+        </Button>
+        <Button variant="floating" onClick={() => setConfirm(true)} disabled={!!busy} className="h-auto min-h-12 w-full justify-start whitespace-normal flex items-center gap-3 rounded-full px-5 py-4 hover:bg-destructive/5 text-left disabled:opacity-50">
           <Trash2 className="w-4 h-4 text-destructive" />
           <div><p className="text-sm font-medium text-destructive">Clear all chats</p></div>
-        </button>
+        </Button>
         {confirm && <ConfirmBox text="Delete all your chats? This can't be undone." confirmLabel="Delete all" busy={busy === "clear"} onCancel={() => setConfirm(false)} onConfirm={onClear} />}
       </SettingsSection>
     </SettingsPage>

@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { KeyRound, Lock, ChevronRight } from "lucide-react";
@@ -5,7 +6,7 @@ import { useNavigate } from "@/lib/router-compat";
 import { securityStatusFn, changePasswordFn } from "@/lib/cloud/account-security.functions";
 import { SettingsPage, SettingsRow, SettingsSection } from "@/components/settings/settings-ui";
 
-const field = "h-14 w-full rounded-full border border-input bg-transparent px-5 text-sm outline-none focus:ring-2 focus:ring-ring";
+const field = "h-14 w-full drawer-floating rounded-full px-5 text-sm outline-none focus:ring-2 focus:ring-ring";
 
 export default function Security() {
   const navigate = useNavigate();
@@ -37,22 +38,22 @@ export default function Security() {
           </SettingsSection>
           {status.hasPassword ? (
             <SettingsSection title="Password">
-              <button onClick={() => navigate("/settings/security/password")}
-                className="flex h-14 w-full items-center gap-3 rounded-full border border-border px-5 text-left text-sm font-medium hover:bg-accent">
+              <Button variant="floating" onClick={() => navigate("/settings/security/password")}
+                className="flex h-auto min-h-12 w-full items-center gap-3 whitespace-normal drawer-floating rounded-full px-5 text-left text-sm font-medium hover:bg-accent">
                 <KeyRound className="w-4 h-4 text-muted-foreground" /><span className="flex-1">Reset password with email code</span><ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </button>
+              </Button>
               {!open ? (
-                <button onClick={() => setOpen(true)} className="flex h-14 w-full items-center gap-3 rounded-full border border-border px-5 text-left text-sm font-medium hover:bg-accent">
+                <Button variant="floating" onClick={() => setOpen(true)} className="flex h-auto min-h-12 w-full items-center gap-3 whitespace-normal drawer-floating rounded-full px-5 text-left text-sm font-medium hover:bg-accent">
                   <Lock className="w-4 h-4 text-muted-foreground" /><span className="flex-1">Change password</span><ChevronRight className="w-4 h-4 text-muted-foreground" />
-                </button>
+                </Button>
               ) : (
                 <form onSubmit={submit} className="space-y-2">
                   <input className={field} type="password" autoComplete="current-password" placeholder="Current password" aria-label="Current password" value={cur} onChange={(e) => setCur(e.target.value)} required />
                   <input className={field} type="password" autoComplete="new-password" placeholder="New password (8+ characters)" aria-label="New password" minLength={8} value={next} onChange={(e) => setNext(e.target.value)} required />
                   <input className={field} type="password" autoComplete="new-password" placeholder="Confirm new password" aria-label="Confirm new password" value={again} onChange={(e) => setAgain(e.target.value)} required />
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setOpen(false)} className="h-12 flex-1 rounded-full border border-border text-sm">Cancel</button>
-                    <button disabled={busy} className="h-12 flex-1 rounded-full bg-primary text-sm font-medium text-primary-foreground disabled:opacity-50">{busy ? "Saving…" : "Save"}</button>
+                    <Button variant="floating" type="button" onClick={() => setOpen(false)} className="h-12 flex-1 drawer-floating rounded-full text-sm">Cancel</Button>
+                    <Button variant="floating" disabled={busy} className="h-12 flex-1 rounded-full text-sm font-medium text-foreground disabled:opacity-50">{busy ? "Saving…" : "Save"}</Button>
                   </div>
                 </form>
               )}

@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Download, FileText, Trash2, Loader2 } from "lucide-react";
@@ -41,10 +42,10 @@ export default function PrivacyData() {
   return (
     <SettingsPage title="Privacy & Data">
       <SettingsSection title="Your data">
-        <button onClick={exportAll} disabled={!!busy} className="w-full flex items-center gap-3 rounded-full border border-border px-5 py-4 hover:bg-accent text-left disabled:opacity-50">
+        <Button variant="floating" onClick={exportAll} disabled={!!busy} className="h-auto min-h-12 w-full justify-start whitespace-normal flex items-center gap-3 drawer-floating rounded-full px-5 py-4 hover:bg-accent text-left disabled:opacity-50">
           {busy === "export" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4 text-muted-foreground" />}
           <div><p className="text-sm font-medium">Download all my data</p></div>
-        </button>
+        </Button>
         <p className="text-xs text-muted-foreground px-1">To delete your whole account, go to <Link to="/account" className="underline">Account</Link>.</p>
       </SettingsSection>
       <SettingsSection title="Research documents" description="Reports from Research mode. Only you can open them.">
@@ -53,16 +54,16 @@ export default function PrivacyData() {
         ) : (
           <>
             {docs.map((d) => (
-              <div key={d.id} className="flex items-center gap-3 rounded-full border border-border px-5 py-3">
+              <div key={d.id} className="flex items-center gap-3 drawer-floating rounded-full px-5 py-3">
                 <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
                 <Link to="/documents/$docId" params={{ docId: d.id }} className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{d.title}</p>
                   <p className="text-xs text-muted-foreground">{new Date(d.createdAt).toLocaleDateString()}</p>
                 </Link>
-                <button aria-label={`Delete ${d.title}`} onClick={() => setConfirm(d.id)} className="rounded-full p-2 hover:bg-destructive/10"><Trash2 className="w-4 h-4 text-destructive" /></button>
+                <Button variant="floating" aria-label={`Delete ${d.title}`} onClick={() => setConfirm(d.id)} size="icon" className="size-9 rounded-full text-destructive hover:bg-destructive/10"><Trash2 className="w-4 h-4 text-destructive" /></Button>
               </div>
             ))}
-            <button onClick={() => setConfirm("all")} className="text-sm text-destructive px-1">Delete all documents</button>
+            <Button variant="floating" onClick={() => setConfirm("all")} className="rounded-full text-sm text-destructive px-4">Delete all documents</Button>
           </>
         )}
         {confirm && <ConfirmBox text={confirm === "all" ? "Delete all research documents?" : "Delete this document?"} confirmLabel="Delete" busy={busy === confirm} onCancel={() => setConfirm("")} onConfirm={() => remove(confirm)} />}

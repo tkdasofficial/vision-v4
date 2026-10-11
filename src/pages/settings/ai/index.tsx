@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useSettings } from "@/hooks/useSettings";
 import { SettingsChoice, SettingsPage, SettingsSection, SettingsToggle } from "@/components/settings/settings-ui";
@@ -24,15 +25,15 @@ export default function AiPreferences() {
           onChange={(v) => update({ tone: v })} />
       </SettingsSection>
       <SettingsSection title="Custom instructions" description="Tell VISION about yourself or how to answer. Applied to every chat.">
-        <div className="rounded-[2rem] border border-border p-5">
+        <div className="space-y-3 px-1 py-2">
           <textarea value={draft} maxLength={MAX_INSTRUCTIONS} onChange={(e) => setDraft(e.target.value)} rows={5}
             aria-label="Custom instructions" placeholder="e.g. I'm a student. Explain with simple examples."
-            className="w-full resize-none bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground" />
+            className="drawer-floating rounded-3xl px-5 py-4 w-full resize-none text-sm text-foreground outline-none placeholder:text-muted-foreground" />
           <div className="mt-2 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">{draft.length}/{MAX_INSTRUCTIONS}</span>
             <div className="flex gap-2">
-              <button disabled={!dirty} onClick={() => setDraft(prefs.customInstructions)} className="rounded-full border border-border px-4 py-2 text-sm disabled:opacity-40">Cancel</button>
-              <button disabled={!dirty || saving} onClick={() => update({ customInstructions: draft })} className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-40">Save</button>
+              <Button variant="floating" disabled={!dirty} onClick={() => setDraft(prefs.customInstructions)} className="drawer-floating rounded-full px-4 py-2 text-sm disabled:opacity-40">Cancel</Button>
+              <Button variant="floating" disabled={!dirty || saving} onClick={() => update({ customInstructions: draft })} className="rounded-full px-4 py-2 text-sm font-medium text-foreground disabled:opacity-40">Save</Button>
             </div>
           </div>
         </div>

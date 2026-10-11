@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Apply shared floating controls and bounded scroll-responsive transparent headers to all Settings subpages; preserve existing actions. Shared-control browser checks pass; signed-in actions remain unverified without a session.
 - [x] Float the Settings title and back button independently; reuse bounded scroll-responsive transparency with content passing underneath.
 - [x] Center the Settings header title with a top-left back arrow; use independent floating glass buttons throughout the settings directory.
 - [x] Compact Settings spacing, profile and icons; make every action pill-shaped and icon controls circular. Four settings tests pass; desktop/mobile light/dark fixture visual checks pass. Signed-in interactions remain unverified without a session.
