@@ -39,6 +39,7 @@ function Group({ title, rows }: { title?: string; rows: Row[] }) {
 export default function SettingsDirectory() {
   const { profile, user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState(false);
   const name = profile?.full_name || "User";
@@ -58,15 +59,15 @@ export default function SettingsDirectory() {
   ];
 
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-settings-canvas text-foreground">
-      <header className="z-10 shrink-0 px-4 pb-2 pt-[max(12px,env(safe-area-inset-top))] sm:px-8">
+    <div className="app-drawer relative grid h-[100dvh] grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden bg-settings-canvas text-foreground" data-scrolled={scrolled}>
+      <header className="drawer-top relative z-10 col-start-1 row-start-1 self-start px-4 pb-5 pt-[max(12px,env(safe-area-inset-top))] sm:px-8">
         <div className="mx-auto grid h-11 max-w-xl grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-3">
           <Button variant="floating" size="icon" className="size-11 shrink-0 rounded-full [&_svg]:size-5" aria-label="Back" title="Back" onClick={() => { if (window.history.length > 1) navigate(-1); else navigate("/drawer"); }}><ArrowLeft /></Button>
-          <h1 className="truncate text-center font-display text-xl font-semibold">Settings</h1>
+          <h1 className="drawer-floating flex h-11 max-w-full items-center justify-center justify-self-center rounded-full px-6 text-center font-display text-xl font-semibold"><span className="truncate">Settings</span></h1>
           <span aria-hidden="true" />
         </div>
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[max(24px,env(safe-area-inset-bottom))] pt-2 sm:px-8">
+      <div className="col-start-1 row-start-1 min-h-0 overflow-y-auto px-4 pb-[max(24px,env(safe-area-inset-bottom))] pt-[max(72px,calc(env(safe-area-inset-top)+60px))] sm:px-8" onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 8)}>
         <div className="mx-auto max-w-xl space-y-4">
           <Button variant="floating" onClick={() => navigate("/account")} aria-label="Edit profile" className="h-auto min-h-20 w-full justify-start gap-3 whitespace-normal rounded-full px-5 py-4 text-left">
             <span className="relative shrink-0">
