@@ -59,9 +59,9 @@ export function analyzeRequest(text: string): RequestAnalysis {
   }
 
   let totalDuration: number | null = null;
-  const tot = /\b(?:audio|narration|voice[- ]?over|voiceover|video|total)\b[^.\n\d]{0,40}?(\d{1,2}:\d{2}|\d+(?:\.\d+)?)\s*(min(?:ute)?s?|s|sec|secs|seconds?)?\b/i.exec(t)
-    ?? /\b(\d{1,2}:\d{2}|\d+(?:\.\d+)?)\s*(min(?:ute)?s?|s|sec|secs|seconds?)\b[^.\n]{0,20}\b(?:audio|narration|voice[- ]?over|voiceover)\b/i.exec(t);
-  if (tot && (tot[2] || tot[1].includes(":"))) {
+  const totRes = [/\b(?:audio|narration|voice[- ]?over|voiceover|video|total)\b[^.\n\d]{0,40}?(\d{1,2}:\d{2}|\d+(?:\.\d+)?)\s*(min(?:ute)?s?|s|sec|secs|seconds?)?\b/gi, /\b(\d{1,2}:\d{2}|\d+(?:\.\d+)?)\s*(min(?:ute)?s?|s|sec|secs|seconds?)\b[^.\n]{0,20}\b(?:audio|narration|voice[- ]?over|voiceover)\b/gi];
+  const tot = totRes.flatMap((re) => [...t.matchAll(re)]).find((m) => m[2] || m[1].includes(":"));
+  if (tot) {
     const v = parseClock(tot[1], tot[2]);
     if (v > 0 && v < 36000) totalDuration = v;
   }
