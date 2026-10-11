@@ -9,13 +9,9 @@ import {
   FileCode,
   Loader2,
   Bot,
-  Monitor,
-  Tablet,
-  Smartphone,
   Terminal,
   RotateCcw,
   Pencil,
-  X,
   CheckCircle2,
   Circle,
   AlertCircle,
@@ -30,17 +26,10 @@ import CodeSource from "@/components/chat/code-source";
 import { detectLanguage } from "@/components/chat/highlight";
 
 type Phase = "compiling" | "ready" | "error" | "auto-fixing";
-type Viewport = "desktop" | "tablet" | "mobile";
 type ConsoleEntry = { level: "log" | "warn" | "error"; message: string; ts: number };
 type StepStatus = "done" | "in_progress" | "pending" | "error";
 type BuildStep = { label: string; status: StepStatus };
 const MAX_AUTO_FIX_ATTEMPTS = 2;
-
-const VIEWPORT_SIZES: Record<Viewport, number> = {
-  desktop: 0,
-  tablet: 768,
-  mobile: 375,
-};
 
 type Props = { project: WebAppProject };
 
@@ -127,7 +116,6 @@ const WebAppPreviewCard = ({ project }: Props) => {
   const [selectedFile, setSelectedFile] = useState<string>(project.files[0]?.path || "");
   const [isEditing, setIsEditing] = useState(false);
   const [copiedFile, setCopiedFile] = useState<string | null>(null);
-  const [viewport, setViewport] = useState<Viewport>("desktop");
   const [consoleLogs, setConsoleLogs] = useState<ConsoleEntry[]>([]);
   const [showFullPreview, setShowFullPreview] = useState(false);
   const [showFullCode, setShowFullCode] = useState(false);
@@ -562,6 +550,7 @@ const WebAppPreviewCard = ({ project }: Props) => {
         language={detectLanguage(currentFile.content)}
         filename={currentFile.path}
         previewHTML={previewHTML || undefined}
+        iframeRef={fullIframeRef}
         initialView={showFullPreview ? "preview" : "code"}
         onClose={() => { setShowFullPreview(false); setShowFullCode(false); }}
       />}

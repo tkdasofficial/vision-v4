@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type Ref } from "react";
 import { ArrowLeft, Check, ChevronDown, ChevronUp, Code2, Columns2, Copy, Download, Eye, ListOrdered, Search, WrapText, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Dialog, DialogPortal, DialogTitle } from "@/components/ui/dialog";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
@@ -9,11 +9,11 @@ import CodeSource from "@/components/chat/code-source";
 import PreviewPane from "@/components/chat/preview-pane";
 import { cn } from "@/lib/utils";
 
-type Props = { code: string; language?: string; filename?: string; html?: string; previewHTML?: string; initialView?: "code" | "preview" | "split"; onClose: () => void };
+type Props = { code: string; language?: string; filename?: string; html?: string; previewHTML?: string; iframeRef?: Ref<HTMLIFrameElement>; initialView?: "code" | "preview" | "split"; onClose: () => void };
 const MIN = 8, MAX = 32, BASE = 13;
 const clamp = (n: number) => Math.min(MAX, Math.max(MIN, n));
 
-export default function FullScreenCodeView({ code, language, filename, previewHTML, initialView = "code", onClose }: Props) {
+export default function FullScreenCodeView({ code, language, filename, previewHTML, iframeRef, initialView = "code", onClose }: Props) {
   const { copied, copy } = useCopy();
   const name = filenameFor(language, filename);
   const [size, setSize] = useState(BASE);
@@ -80,7 +80,7 @@ export default function FullScreenCodeView({ code, language, filename, previewHT
       </div>}
       <div className={cn("grid min-h-0 flex-1", view === "split" ? "grid-rows-2 md:grid-cols-2 md:grid-rows-1" : "grid-cols-1")}>
         {view !== "preview" && <div ref={area} aria-label="Code content" tabIndex={0} className="min-h-0 min-w-0 overflow-auto overscroll-contain focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"><CodeSource code={code} language={language} size={size} wrap={wrap} lineNumbers={numbers} query={query} activeLine={activeLine} /></div>}
-        {view !== "code" && preview && <div className="min-h-0 min-w-0 border-t border-border md:border-l md:border-t-0"><PreviewPane html={preview} title={`${name} preview`} /></div>}
+        {view !== "code" && preview && <div className="min-h-0 min-w-0 border-t border-border md:border-l md:border-t-0"><PreviewPane html={preview} iframeRef={iframeRef} title={`${name} preview`} /></div>}
       </div>
       <footer className="flex h-8 shrink-0 items-center justify-between gap-2 border-t border-border px-3 font-mono text-[11px] text-muted-foreground"><span className="truncate">{language || "Plain text"} · {code.split("\n").length} lines</span><span className="shrink-0">{new TextEncoder().encode(code).length.toLocaleString()} bytes</span></footer>
     </DialogPrimitive.Content>
