@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Center the Settings header title with a top-left back arrow; use independent floating glass buttons throughout the settings directory.
 - [x] Compact Settings spacing, profile and icons; make every action pill-shaped and icon controls circular. Four settings tests pass; desktop/mobile light/dark fixture visual checks pass. Signed-in interactions remain unverified without a session.
 - [x] Rebuild Settings with a horizontal profile section, neutral grouped rows and compact scrolling header; preserve all destinations and actions. 63 tests pass; dark/light and desktop/mobile visual checks pass with fixture profile data. Signed-in page interactions remain unverified without a session.
 - [x] Remove the visible search header band; content scrolls beneath independently floating controls with a subtle scroll-responsive fade. 62 tests pass; desktop/mobile visual checks confirm transparent rest state and fade on scroll using fixture content. Signed-in results remain unverified without a session.
