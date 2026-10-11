@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import { SettingsPage, SettingsRow, SettingsSection } from "@/components/settings/settings-ui";
@@ -17,9 +18,9 @@ export default function About() {
       </SettingsSection>
       <SettingsSection title="Help & legal">
         {links.map((l) => (
-          <Link key={l.to} to={l.to} className="flex items-center justify-between rounded-full border border-border px-5 py-4 text-sm font-medium hover:bg-accent">
+          <Button key={l.to} variant="floating" asChild className="h-auto min-h-12 w-full justify-between whitespace-normal rounded-full px-5 py-3 text-sm"><Link to={l.to}>
             {l.label}<ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </Link>
+          </Link></Button>
         ))}
       </SettingsSection>
     </SettingsPage>

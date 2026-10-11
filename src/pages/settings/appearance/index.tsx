@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useSettings } from "@/hooks/useSettings";
 import { SettingsChoice, SettingsPage, SettingsSection } from "@/components/settings/settings-ui";
 import { cn } from "@/lib/utils";
@@ -21,12 +22,12 @@ export default function Appearance() {
           onChange={(v) => update({ theme: v })} />
       </SettingsSection>
       <SettingsSection title="Accent colour" description="Used for main buttons and highlights.">
-        <div className="flex items-center gap-3 rounded-full border border-border py-2 pl-5 pr-2"><p className="shrink-0 text-sm font-medium text-foreground">Accent</p><div role="radiogroup" aria-label="Accent colour" className="ml-auto flex min-w-0 gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex items-center gap-3 drawer-floating rounded-full py-2 pl-5 pr-2"><p className="shrink-0 text-sm font-medium text-foreground">Accent</p><div role="radiogroup" aria-label="Accent colour" className="ml-auto flex min-w-0 gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {ACCENTS.map((a) => (
-            <button key={a.value} type="button" role="radio" aria-checked={prefs.accent === a.value} onClick={() => update({ accent: a.value })}
-              aria-label={a.label} title={a.label} className="shrink-0 p-1">
+            <Button variant="floating" key={a.value} type="button" role="radio" aria-checked={prefs.accent === a.value} onClick={() => update({ accent: a.value })}
+              aria-label={a.label} title={a.label} size="icon" className="size-9 shrink-0 rounded-full p-1">
               <span className={cn("block w-7 h-7 rounded-full ring-offset-2 ring-offset-background", a.swatch, prefs.accent === a.value && "ring-2 ring-foreground")} />
-            </button>
+            </Button>
           ))}
         </div></div>
       </SettingsSection>

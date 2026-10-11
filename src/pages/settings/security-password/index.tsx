@@ -1,6 +1,7 @@
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import PageHeader from "@/components/page-header";
+import { SettingsPage } from "@/components/settings/settings-ui";
 import { Mail, Eye, EyeOff, Check, Loader2 } from "lucide-react";
 import { useNavigate } from "@/lib/router-compat";
 import { securityStatusFn } from "@/lib/cloud/account-security.functions";
@@ -11,8 +12,8 @@ import { cn } from "@/lib/utils";
 
 type Step = "send" | "code" | "password";
 const STEPS: { id: Step; label: string }[] = [{ id: "send", label: "Email" }, { id: "code", label: "Code" }, { id: "password", label: "Password" }];
-const field = "h-12 w-full rounded-full border border-input bg-transparent px-5 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring";
-const primary = "h-12 w-full rounded-full bg-primary text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2";
+const field = "h-12 w-full drawer-floating rounded-full px-5 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring";
+const primary = "h-auto min-h-12 w-full rounded-full text-sm font-medium text-foreground transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2";
 
 const mask = (e: string) => { const [u, d] = e.split("@"); return u && d ? `${u.slice(0, 2)}${"•".repeat(Math.max(1, u.length - 2))}@${d}` : e; };
 
@@ -67,13 +68,12 @@ export default function ResetPasswordCode() {
     : "Choose a strong password you don't use anywhere else.";
 
   return (
-    <div className="relative min-h-[100dvh] bg-background flex flex-col">
-      <PageHeader title="" backTo="/chat" />
+    <SettingsPage title="Reset password" backTo="/settings/security">
 
       <div className="w-full max-w-sm mx-auto flex flex-col gap-7 px-6 pt-4 pb-10">
         <div className="space-y-2">
           <img src={logo} alt="Vision" className="w-12 h-12 rounded-2xl" />
-          <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-foreground pt-4">{title}</h1>
+          <h2 className="font-display text-2xl font-semibold text-foreground pt-4">{title}</h2>
           <p className="text-sm text-muted-foreground">{sub}</p>
         </div>
 
@@ -81,7 +81,7 @@ export default function ResetPasswordCode() {
           {STEPS.map((s, i) => (
             <li key={s.id} className="flex flex-1 items-center gap-2">
               <span className={cn("w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-xs font-medium border",
-                i < idx ? "bg-primary text-primary-foreground border-primary" : i === idx ? "border-foreground text-foreground" : "border-border text-muted-foreground")}>
+                i < idx ? "bg-primary text-foreground border-primary" : i === idx ? "border-foreground text-foreground" : "border-border text-muted-foreground")}>
                 {i < idx ? <Check className="w-3.5 h-3.5" /> : i + 1}
               </span>
               <span className={cn("text-xs", i <= idx ? "text-foreground" : "text-muted-foreground")}>{s.label}</span>
@@ -94,11 +94,11 @@ export default function ResetPasswordCode() {
           <>
             {step === "send" && (
               <div className="space-y-3">
-                <div className="flex items-center gap-3 rounded-full border border-border px-5 h-12">
+                <div className="flex items-center gap-3 drawer-floating rounded-full px-5 h-12">
                   <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
                   <span className="min-w-0 truncate text-sm text-foreground">{email}</span>
                 </div>
-                <button onClick={send} disabled={busy} className={primary}>{busy && <Loader2 className="w-4 h-4 animate-spin" />}{busy ? "Sending…" : "Send code"}</button>
+                <Button variant="floating" onClick={send} disabled={busy} className={primary}>{busy && <Loader2 className="w-4 h-4 animate-spin" />}{busy ? "Sending…" : "Send code"}</Button>
               </div>
             )}
 
@@ -109,12 +109,12 @@ export default function ResetPasswordCode() {
                     <InputOTPGroup>{Array.from({ length: 8 }, (_, i) => <InputOTPSlot key={i} index={i} className="w-9 h-11" />)}</InputOTPGroup>
                   </InputOTP>
                 </div>
-                <button disabled={busy || code.length !== 8} className={primary}>{busy && <Loader2 className="w-4 h-4 animate-spin" />}{busy ? "Checking…" : "Confirm code"}</button>
+                <Button variant="floating" disabled={busy || code.length !== 8} className={primary}>{busy && <Loader2 className="w-4 h-4 animate-spin" />}{busy ? "Checking…" : "Confirm code"}</Button>
                 <p className="text-center text-sm text-muted-foreground">
                   Didn't get it?{" "}
-                  <button type="button" onClick={send} disabled={busy || cooldown > 0} className="font-medium text-foreground underline underline-offset-4 disabled:no-underline disabled:text-muted-foreground">
+                  <Button variant="floating" type="button" onClick={send} disabled={busy || cooldown > 0} className="mt-2 rounded-full font-medium text-foreground disabled:text-muted-foreground">
                     {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
-                  </button>
+                  </Button>
                 </p>
               </form>
             )}
@@ -123,9 +123,9 @@ export default function ResetPasswordCode() {
               <form onSubmit={save} className="space-y-3">
                 <div className="relative">
                   <input className={`${field} pr-12`} type={show ? "text" : "password"} autoComplete="new-password" minLength={8} maxLength={128} placeholder="New password" aria-label="New password" value={pw} onChange={(e) => setPw(e.target.value)} required autoFocus />
-                  <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? "Hide password" : "Show password"} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  <Button variant="floating" type="button" onClick={() => setShow((v) => !v)} aria-label={show ? "Hide password" : "Show password"} size="icon" className="absolute right-2 top-1/2 size-9 -translate-y-1/2 rounded-full text-muted-foreground hover:text-foreground">
                     {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+                  </Button>
                 </div>
                 <input className={field} type={show ? "text" : "password"} autoComplete="new-password" minLength={8} maxLength={128} placeholder="Confirm password" aria-label="Confirm password" value={pw2} onChange={(e) => setPw2(e.target.value)} required />
                 <ul className="flex flex-wrap gap-2 pt-1">
@@ -135,12 +135,12 @@ export default function ResetPasswordCode() {
                     </li>
                   ))}
                 </ul>
-                <button disabled={busy || pw.length < 8 || pw !== pw2} className={`${primary} mt-2`}>{busy && <Loader2 className="w-4 h-4 animate-spin" />}{busy ? "Saving…" : "Change password"}</button>
+                <Button variant="floating" disabled={busy || pw.length < 8 || pw !== pw2} className={`${primary} mt-2`}>{busy && <Loader2 className="w-4 h-4 animate-spin" />}{busy ? "Saving…" : "Change password"}</Button>
               </form>
             )}
           </>
         )}
       </div>
-    </div>
+    </SettingsPage>
   );
 }
