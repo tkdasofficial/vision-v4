@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import { useSettings } from "@/hooks/useSettings";
 import { SettingsChoice, SettingsPage, SettingsSection } from "@/components/settings/settings-ui";
 import { cn } from "@/lib/utils";
@@ -6,10 +7,10 @@ import type { Prefs } from "@/lib/settings";
 
 const ACCENTS: { value: Prefs["accent"]; label: string; swatch: string }[] = [
   { value: "mono", label: "Mono", swatch: "bg-foreground" },
-  { value: "blue", label: "Blue", swatch: "[background:hsl(217_80%_50%)]" },
-  { value: "green", label: "Green", swatch: "[background:hsl(150_60%_36%)]" },
-  { value: "orange", label: "Orange", swatch: "[background:hsl(24_90%_48%)]" },
-  { value: "rose", label: "Rose", swatch: "[background:hsl(345_75%_50%)]" },
+  { value: "blue", label: "Blue", swatch: "bg-swatch-blue" },
+  { value: "green", label: "Green", swatch: "bg-swatch-green" },
+  { value: "orange", label: "Orange", swatch: "bg-swatch-orange" },
+  { value: "rose", label: "Rose", swatch: "bg-swatch-rose" },
 ];
 
 export default function Appearance() {
@@ -22,14 +23,15 @@ export default function Appearance() {
           onChange={(v) => update({ theme: v })} />
       </SettingsSection>
       <SettingsSection title="Accent colour" description="Used for main buttons and highlights.">
-        <div className="flex items-center gap-3 drawer-floating rounded-full py-2 pl-5 pr-2"><p className="shrink-0 text-sm font-medium text-foreground">Accent</p><div role="radiogroup" aria-label="Accent colour" className="ml-auto flex min-w-0 gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="px-1 py-2"><p className="px-4 text-sm font-medium text-foreground">Accent</p><RadioGroupPrimitive.Root value={prefs.accent} onValueChange={(value) => { const accent = ACCENTS.find((a) => a.value === value); if (accent) update({ accent: accent.value }); }} aria-label="Accent colour" className="mt-3 flex flex-wrap gap-2">
           {ACCENTS.map((a) => (
-            <Button variant="floating" key={a.value} type="button" role="radio" aria-checked={prefs.accent === a.value} onClick={() => update({ accent: a.value })}
-              aria-label={a.label} title={a.label} size="icon" className="size-9 shrink-0 rounded-full p-1">
-              <span className={cn("block w-7 h-7 rounded-full ring-offset-2 ring-offset-background", a.swatch, prefs.accent === a.value && "ring-2 ring-foreground")} />
-            </Button>
+            <RadioGroupPrimitive.Item key={a.value} value={a.value} asChild>
+              <Button variant="floating" type="button" aria-label={a.label} title={a.label} size="icon" className="size-11 shrink-0 rounded-full p-2">
+                <span className={cn("block size-6 rounded-full ring-offset-2 ring-offset-background", a.swatch, prefs.accent === a.value && "ring-2 ring-foreground")} />
+              </Button>
+            </RadioGroupPrimitive.Item>
           ))}
-        </div></div>
+        </RadioGroupPrimitive.Root></div>
       </SettingsSection>
       <SettingsSection title="Text size">
         <SettingsChoice label="Text size" value={prefs.fontSize}

@@ -17,6 +17,10 @@
   --color-settings-canvas: hsl(var(--settings-canvas));
   --color-settings-surface: hsl(var(--settings-surface));
   --color-settings-divider: hsl(var(--settings-divider));
+  --color-swatch-blue: hsl(217 80% 50%);
+  --color-swatch-green: hsl(150 60% 36%);
+  --color-swatch-orange: hsl(24 90% 48%);
+  --color-swatch-rose: hsl(345 75% 50%);
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
