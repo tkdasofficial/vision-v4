@@ -30,6 +30,11 @@ const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
   const wanted = useRef<string | undefined>(undefined);
   const justCreated = useRef<string | undefined>(undefined);
 
+  // Reset only when switching empty drafts, never on draft → saved chat navigation.
+  useEffect(() => {
+    if (!urlChatId) setChatKey((k) => k + 1);
+  }, [draftProject]);
+
   // The address is the source of truth: direct links, refresh, new tabs and Back/Forward all open exactly that chat.
   const openFromUrl = useCallback((id: string) => {
     wanted.current = id;
@@ -103,7 +108,7 @@ const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
             </>}
           </div>
         ) : <ChatWorkspace
-          key={`${isIncognito}-${chatKey}-${urlChatId ? "saved" : draftProject || "default"}`}
+          key={`${isIncognito}-${chatKey}`}
           tool={selectedTool}
           isIncognito={isIncognito}
           onIncognitoChat={handleIncognitoChat}
