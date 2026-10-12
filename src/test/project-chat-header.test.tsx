@@ -9,7 +9,7 @@ import ProjectChatHeader from "@/components/project-chat-header";
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 describe("Project chat actions", () => {
   it("offers only project actions and no Incognito", async () => {
-    render(<ProjectChatHeader projectId="p1" onMenuClick={vi.fn()} />);
+    render(<ProjectChatHeader projectId="p1" />);
     const trigger = await screen.findByRole("button", { name: "Options for Research project" });
     fireEvent.keyDown(trigger, { key: "Enter" });
     const edit = await screen.findByRole("menuitem", { name: "Edit project" });

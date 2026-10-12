@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, ExternalLink, FileText, FolderOpen, MessageSquare, Pin, Trash2, Upload, X } from "lucide-react";
+import { ArrowUp, Check, ExternalLink, FileText, FolderOpen, MessageSquare, Pin, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { useChatHistory } from "@/context/ChatHistoryContext";
 import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/lib/cloud/client";
 import FloatingWorkspacePage from "@/components/floating-workspace-page";
-import ProjectMenu from "@/components/project-menu";
 import ChatItemMenu from "@/components/chat-item-menu";
 import { useProjectActions, type ProjectRow } from "@/components/project-menu/use-project-actions";
 import { Button } from "@/components/ui/button";
 import { projectChats } from "@/lib/recent-chats";
+import { setPendingProjectPrompt } from "@/lib/pending-project";
 import { cn } from "@/lib/utils";
 
 type Source = { id: string; name: string; mime: string; kind: string; size: number; url: string; created_at: string };
@@ -32,6 +32,8 @@ export default function ProjectDetail({ projectId }: { projectId: string }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
+  const [draft, setDraft] = useState("");
+  const startChat = () => { const text = draft.trim(); if (!text) return; setPendingProjectPrompt(projectId, text); navigate(`/chat?project=${encodeURIComponent(projectId)}`); };
 
   const load = async () => {
     if (!user) return;
@@ -78,16 +80,14 @@ export default function ProjectDetail({ projectId }: { projectId: string }) {
 
   if (missing) return <FloatingWorkspacePage title="Project" query={query} onQueryChange={setQuery} backTo="/projects"><div className="py-20 text-center text-muted-foreground"><FolderOpen className="mx-auto mb-4 size-8" /><p>Project not found</p></div></FloatingWorkspacePage>;
 
-  return <FloatingWorkspacePage title={project?.name || "Project"} query={query} onQueryChange={setQuery} backTo="/projects"
-    actions={project && <ProjectMenu name={project.name} pinned={!!project.pinned} actions={actionsFor(project)} />}>
+  return <FloatingWorkspacePage title={project?.name || "Project"} query={query} onQueryChange={setQuery} backTo="/projects" footer={tab === "chats" ? <form className="drawer-floating mx-auto flex max-w-4xl items-end gap-2 rounded-[28px] p-2 pl-5" onSubmit={(e) => { e.preventDefault(); startChat(); }}><textarea rows={1} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); startChat(); } }} aria-label="Message this project" placeholder={`Message ${project?.name || "project"}`} className="max-h-40 min-h-10 flex-1 resize-none bg-transparent py-2 text-base text-foreground placeholder:text-muted-foreground focus:outline-none" /><Button type="submit" size="icon" className="size-10 shrink-0 rounded-full" aria-label="Start project chat" disabled={!draft.trim()}><ArrowUp /></Button></form> : undefined}>
     <div role="tablist" aria-label="Project sections" className="mb-5 grid grid-cols-2 gap-2">
-      {(["chats", "sources"] as const).map((t) => <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={cn("drawer-filter flex h-11 items-center justify-center gap-2 rounded-full text-sm font-semibold capitalize", tab === t && "bg-foreground text-background")}>
+      {(["chats", "sources"] as const).map((t) => <button key={t} type="button" role="tab" aria-selected={tab === t} data-state={tab === t ? "active" : "inactive"} onClick={() => { setTab(t); setQuery(""); }} className="drawer-filter relative z-0 flex h-11 touch-manipulation items-center justify-center gap-2 rounded-full text-sm font-semibold capitalize text-foreground">
         {t === "chats" ? <MessageSquare className="size-4" /> : <FileText className="size-4" />}{t}
       </button>)}
     </div>
 
     {tab === "chats" ? <div role="tabpanel" className="space-y-1">
-      {project && <Button variant="floating" className="mb-3 h-11 w-full justify-start rounded-full px-4" onClick={() => actionsFor(project).onNewChat()}><MessageSquare />New project chat</Button>}
       {chats.length === 0 ? <p className="py-12 text-center text-sm text-muted-foreground">{q ? "No chats found" : "No chats in this project yet"}</p> : chats.map((chat) => <div key={chat.id} className="flex items-center gap-1">
         {editingId === chat.id ? <div className="flex min-w-0 flex-1 items-center gap-2">
           <input autoFocus aria-label="Chat title" value={editValue} onChange={(e) => setEditValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") confirmRename(); if (e.key === "Escape") setEditingId(null); }} className="drawer-floating h-11 min-w-0 flex-1 rounded-full px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />

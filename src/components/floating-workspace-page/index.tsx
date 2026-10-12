@@ -5,8 +5,8 @@ import { useNavigate } from "@/lib/router-compat";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { PageMenuItem } from "@/components/page-header";
 
-export default function FloatingWorkspacePage({ title, children, actions, query, onQueryChange, menu, backTo = "/drawer" }: {
-  title: string; children: ReactNode; actions?: ReactNode; query: string; onQueryChange: (value: string) => void; menu?: PageMenuItem[]; backTo?: string;
+export default function FloatingWorkspacePage({ title, children, actions, query, onQueryChange, menu, footer, backTo = "/drawer" }: {
+  title: string; children: ReactNode; actions?: ReactNode; query: string; onQueryChange: (value: string) => void; menu?: PageMenuItem[]; backTo?: string; footer?: ReactNode;
 }) {
   const navigate = useNavigate();
   const [searching, setSearching] = useState(false);
@@ -29,6 +29,7 @@ export default function FloatingWorkspacePage({ title, children, actions, query,
         </>}
       </div>
     </header>
-    <div className="col-start-1 row-start-1 min-h-0 overflow-y-auto px-4 pb-[max(24px,env(safe-area-inset-bottom))] pt-[max(80px,calc(env(safe-area-inset-top)+68px))] sm:px-8" onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 8)}><div className="mx-auto max-w-4xl">{children}</div></div>
+    <div className={`col-start-1 row-start-1 min-h-0 overflow-y-auto px-4 ${footer ? "pb-32" : "pb-[max(24px,env(safe-area-inset-bottom))]"} pt-[max(80px,calc(env(safe-area-inset-top)+68px))] sm:px-8`} onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 8)}><div className="mx-auto max-w-4xl">{children}</div></div>
+    {footer && <div className="drawer-bottom pointer-events-none relative z-10 col-start-1 row-start-1 self-end px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-6 sm:px-8"><div className="pointer-events-auto">{footer}</div></div>}
   </div>;
 }
