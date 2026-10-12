@@ -73,6 +73,7 @@ import { Route as ImagesImageChatIdRouteImport } from './routes/images.$imageCha
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
+import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
 import { Route as ProjectsNewRouteImport } from './routes/projects.new'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsAboutRouteImport } from './routes/settings.about'
@@ -417,6 +418,11 @@ const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
   path: '/projects/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
+  id: '/projects/$projectId',
+  path: '/projects/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProjectsNewRoute = ProjectsNewRouteImport.update({
   id: '/projects/new',
   path: '/projects/new',
@@ -590,6 +596,7 @@ export interface FileRoutesByFullPath {
   '/images/$imageChatId': typeof ImagesImageChatIdRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/settings/about': typeof SettingsAboutRoute
   '/settings/accessibility': typeof SettingsAccessibilityRoute
@@ -675,6 +682,7 @@ export interface FileRoutesByTo {
   '/images/$imageChatId': typeof ImagesImageChatIdRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/settings/about': typeof SettingsAboutRoute
   '/settings/accessibility': typeof SettingsAccessibilityRoute
@@ -764,6 +772,7 @@ export interface FileRoutesById {
   '/images/$imageChatId': typeof ImagesImageChatIdRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/projects/new': typeof ProjectsNewRoute
   '/settings/about': typeof SettingsAboutRoute
   '/settings/accessibility': typeof SettingsAccessibilityRoute
@@ -854,6 +863,7 @@ export interface FileRouteTypes {
     | '/images/$imageChatId'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/projects/$projectId'
     | '/projects/new'
     | '/settings/about'
     | '/settings/accessibility'
@@ -939,6 +949,7 @@ export interface FileRouteTypes {
     | '/images/$imageChatId'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/projects/$projectId'
     | '/projects/new'
     | '/settings/about'
     | '/settings/accessibility'
@@ -1027,6 +1038,7 @@ export interface FileRouteTypes {
     | '/images/$imageChatId'
     | '/legal/privacy'
     | '/legal/terms'
+    | '/projects/$projectId'
     | '/projects/new'
     | '/settings/about'
     | '/settings/accessibility'
@@ -1089,6 +1101,7 @@ export interface RootRouteChildren {
   ImagesImageChatIdRoute: typeof ImagesImageChatIdRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
+  ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
   ProjectsNewRoute: typeof ProjectsNewRoute
   StudioImagesRoute: typeof StudioImagesRoute
   StudioVideosRoute: typeof StudioVideosRoute
@@ -1550,6 +1563,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projects/$projectId': {
+      id: '/projects/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId'
+      preLoaderRoute: typeof ProjectsProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/projects/new': {
       id: '/projects/new'
       path: '/projects/new'
@@ -1899,6 +1919,7 @@ const rootRouteChildren: RootRouteChildren = {
   ImagesImageChatIdRoute: ImagesImageChatIdRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
+  ProjectsProjectIdRoute: ProjectsProjectIdRoute,
   ProjectsNewRoute: ProjectsNewRoute,
   StudioImagesRoute: StudioImagesRoute,
   StudioVideosRoute: StudioVideosRoute,

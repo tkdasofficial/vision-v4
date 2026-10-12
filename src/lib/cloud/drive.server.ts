@@ -73,7 +73,7 @@ async function folderFor(token: string, kind: Kind): Promise<string> {
 }
 
 /** Uploads a file to Drive, makes it link-readable, and records it in D1. */
-export async function storeFile(userId: string, name: string, mime: string, bytes: Uint8Array) {
+export async function storeFile(userId: string, name: string, mime: string, bytes: Uint8Array, projectId: string | null = null) {
   const token = await accessToken();
   const kind = kindForMime(mime, name);
   const folder = await folderFor(token, kind);
@@ -106,14 +106,15 @@ export async function storeFile(userId: string, name: string, mime: string, byte
   const url = `https://drive.google.com/file/d/${fileId}/view`;
   const id = crypto.randomUUID();
   await d1(
-    "INSERT INTO user_files (id, user_id, name, mime, kind, size, drive_file_id, url, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    [id, userId, safeName, mime || "application/octet-stream", kind, bytes.length, fileId, url, new Date().toISOString()],
+    "INSERT INTO user_files (id, user_id, name, mime, kind, size, drive_file_id, url, project_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    [id, userId, safeName, mime || "application/octet-stream", kind, bytes.length, fileId, url, projectId, new Date().toISOString()],
   );
-  return { id, name: safeName, mime, kind, size: bytes.length, url };
+  return { id, name: safeName, mime, kind, size: bytes.length, url, project_id: projectId, created_at: new Date().toISOString() };
 }
 
-export async function listFiles(userId: string) {
-  return d1("SELECT id, name, mime, kind, size, url, created_at FROM user_files WHERE user_id = ? ORDER BY created_at DESC", [userId]);
+export async function listFiles(userId: string, projectId?: string | null) {
+  if (projectId) return d1("SELECT id, name, mime, kind, size, url, project_id, created_at FROM user_files WHERE user_id = ? AND project_id = ? ORDER BY created_at DESC", [userId, projectId]);
+  return d1("SELECT id, name, mime, kind, size, url, project_id, created_at FROM user_files WHERE user_id = ? ORDER BY created_at DESC", [userId]);
 }
 
 export async function deleteFile(userId: string, fileId: string) {

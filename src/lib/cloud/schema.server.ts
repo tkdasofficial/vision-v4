@@ -293,6 +293,7 @@ export const TABLES: Record<string, { key: string; cols: Record<string, ColKind>
    "size": "num",
    "drive_file_id": "text",
    "url": "text",
+   "project_id": "text",
    "created_at": "text"
   }
  },
@@ -305,6 +306,8 @@ export const TABLES: Record<string, { key: string; cols: Record<string, ColKind>
    "icon": "text",
    "category": "text",
    "session_id": "text",
+   "pinned": "bool",
+   "instructions": "text",
    "created_at": "text",
    "updated_at": "text"
   }
