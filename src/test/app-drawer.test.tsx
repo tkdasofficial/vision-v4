@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({ navigate: vi.fn(), rename: vi.fn(), remove: vi
 vi.mock("@/lib/router-compat", () => ({ useNavigate: () => mocks.navigate }));
 vi.mock("@/context/AuthContext", () => ({ useAuth: () => ({ user: null, profile: null }) }));
 vi.mock("@/lib/cloud/client", () => ({ supabase: {} }));
-vi.mock("@/context/ChatHistoryContext", () => ({ useChatHistory: () => ({ history: [{ id: "chat-1", title: "Design notes" }, { id: "chat-2", title: "Project chat", projectId: "project-1" }], renameChat: mocks.rename, deleteChat: mocks.remove }) }));
+vi.mock("@/context/ChatHistoryContext", () => ({ useChatHistory: () => ({ history: [{ id: "chat-1", title: "Design notes" }, { id: "chat-2", title: "Project chat", projectId: "project-1" }], renameChat: mocks.rename, deleteChat: mocks.remove, getChatById: () => undefined, togglePin: vi.fn(), setChatProject: vi.fn() }) }));
 vi.mock("@/components/sidebar-features", () => ({ default: () => <nav aria-label="Workspace features">Library · Projects · Plugins</nav> }));
 import AppDrawer, { AppDrawerView } from "@/components/app-drawer";
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
@@ -26,11 +26,15 @@ describe("AppDrawer", () => {
     expect(screen.queryByText("Project chat")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Design notes" }));
     expect(select).toHaveBeenCalledWith("chat-1");
-    fireEvent.click(screen.getByRole("button", { name: "Rename Design notes" }));
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const openMenu = () => { const t = screen.getByRole("button", { name: "Options for Design notes" }); fireEvent.pointerDown(t, { button: 0, ctrlKey: false }); fireEvent.keyDown(t, { key: "Enter" }); };
+    openMenu();
+    fireEvent.click(screen.getByRole("menuitem", { name: "Rename" }));
     fireEvent.change(screen.getByRole("textbox", { name: "Chat title" }), { target: { value: "Updated notes" } });
     fireEvent.click(screen.getByRole("button", { name: "Save chat title" }));
     expect(mocks.rename).toHaveBeenCalledWith("chat-1", "Updated notes");
-    fireEvent.click(screen.getByRole("button", { name: "Delete Design notes" }));
+    openMenu();
+    fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     expect(mocks.remove).toHaveBeenCalledWith("chat-1");
     fireEvent.click(screen.getByRole("button", { name: "Open settings" }));
     expect(mocks.navigate).toHaveBeenCalledWith("/settings");
