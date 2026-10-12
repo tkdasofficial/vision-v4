@@ -31,7 +31,7 @@ export type SearchItem = {
 type Row = Record<string, any>;
 
 export function collectSearchItems(sessions: Row[], messages: Row[], tasks: Row[], stories: Row[]): SearchItem[] {
-  const items: SearchItem[] = sessions.map((session) => ({
+  const items: SearchItem[] = sessions.filter((session) => !session.project_id).map((session) => ({
     id: session.id, category: "chats", title: session.title || "Untitled chat",
     detail: session.preview || "", sessionId: session.id, date: session.created_at,
   }));
