@@ -14,6 +14,9 @@ import { projectIcons } from "@/lib/project-options";
 
 type Project = { id: string; name: string; icon?: string };
 
+/** Shared clean row style for the chat/project option menus. */
+const menuItemClass = "gap-3 rounded-full px-4 py-2.5 text-sm [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground";
+
 /** Three-dot options for one chat row (Recent list and project chat lists). */
 export default function ChatItemMenu({ chatId, title, onRename, inProject = false, className }: {
   chatId: string; title: string; onRename: () => void; inProject?: boolean; className?: string;

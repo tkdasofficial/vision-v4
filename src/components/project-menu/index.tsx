@@ -7,6 +7,9 @@ export type ProjectMenuActions = {
   onEdit: () => void; onInstructions: () => void; onDelete: () => void;
 };
 
+/** Shared clean row style for the chat/project option menus. */
+const menuItemClass = "gap-3 rounded-full px-4 py-2.5 text-sm [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground";
+
 /** Three-dot options for a project (list rows and the project page header). */
 export default function ProjectMenu({ name, pinned, actions }: { name: string; pinned: boolean; actions: ProjectMenuActions }) {
   return <DropdownMenu>
