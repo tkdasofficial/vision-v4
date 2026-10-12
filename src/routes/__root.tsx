@@ -5,9 +5,11 @@ import {
   createRootRouteWithContext,
   HeadContent,
   Scripts,
+  useRouter,
 } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
 import { setupPwa } from "@/lib/pwa";
+import { warmRoutes } from "@/lib/route-warmup";
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -87,7 +89,9 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
   useEffect(() => { setupPwa(); }, []);
+  useEffect(() => warmRoutes(router as never), [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
