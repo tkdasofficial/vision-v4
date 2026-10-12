@@ -101,15 +101,15 @@ export default function WorkspaceSearch({ library = false, topSearch = false, on
               const group = results.filter((item) => item.category === entry.value);
               if (!group.length) return null;
               if (library) return <div key={entry.value} className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{group.map((item) => {
-                const card = <><p className="line-clamp-2 break-all text-base font-medium text-foreground">{item.title}</p><entry.icon className="size-6 text-primary" /></>;
-                const cls = "drawer-floating flex aspect-square flex-col justify-between rounded-lg p-4 text-left transition-colors hover:bg-accent";
+                const card = <><p className="line-clamp-2 break-all text-sm font-medium text-foreground">{item.title}</p><entry.icon className="size-5 text-primary" /></>;
+                const cls = "drawer-floating flex aspect-square flex-col justify-between rounded-lg p-3 text-left transition-colors hover:bg-accent";
                 return item.sessionId ? <Link key={item.id} to="/chat/$chatId" params={{ chatId: item.sessionId }} onClick={onNavigate} className={cls}>{card}</Link> : <div key={item.id} className={cls}>{card}</div>;
               })}</div>;
               return <section key={entry.value} className="mb-8">
                 <h2 className="mb-3 text-sm font-semibold text-muted-foreground">{entry.label} <span className="ml-2">{group.length}</span></h2>
                 <div className="divide-y divide-border">{group.map((item) => {
-                  const content = <><entry.icon className="h-5 w-5 shrink-0 text-muted-foreground" /><div className="min-w-0 flex-1"><p className="truncate font-medium">{item.title}</p><p className="truncate text-sm text-muted-foreground">{item.detail}</p></div>{item.sessionId && <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />}</>;
-                  return item.sessionId ? <Link key={item.id} to="/chat/$chatId" params={{ chatId: item.sessionId }} onClick={onNavigate} className="flex items-center gap-4 rounded-lg px-3 py-4 transition-colors hover:bg-accent">{content}</Link> : <div key={item.id} className="flex items-center gap-4 px-3 py-4">{content}</div>;
+                  const content = <><entry.icon className="size-4.5 shrink-0 text-muted-foreground" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{item.title}</p><p className="truncate text-xs text-muted-foreground">{item.detail}</p></div>{item.sessionId && <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />}</>;
+                  return item.sessionId ? <Link key={item.id} to="/chat/$chatId" params={{ chatId: item.sessionId }} onClick={onNavigate} className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-accent">{content}</Link> : <div key={item.id} className="flex items-center gap-3 px-3 py-2.5">{content}</div>;
                 })}</div>
               </section>;
             })}
