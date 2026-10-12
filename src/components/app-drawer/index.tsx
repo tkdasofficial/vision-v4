@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Check, MessageSquare, Pencil, Pin, Search, Trash2, X } from "lucide-react";
+import { Check, MessageSquare, Pencil, Pin, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useChatHistory } from "@/context/ChatHistoryContext";
 import { recentChats } from "@/lib/recent-chats";
 import SidebarFeatures from "@/components/sidebar-features";
 import ProfileMenu from "@/components/profile-menu";
+import ChatItemMenu from "@/components/chat-item-menu";
 import WorkspaceSearch from "@/components/workspace-search";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,7 @@ type Props = {
 
 /** Shared full-screen navigation surface, also used by the preserved /search URL. */
 export default function AppDrawerView({ onClose, onNewChat, onSelectChat, activeChatId, initialSearch = false }: Props & { initialSearch?: boolean }) {
-  const { history, renameChat, deleteChat } = useChatHistory();
+  const { history, renameChat } = useChatHistory();
   const [searching, setSearching] = useState(initialSearch);
   const [scrolled, setScrolled] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -57,10 +58,7 @@ export default function AppDrawerView({ onClose, onNewChat, onSelectChat, active
                 <Button variant="ghost" onClick={() => selectChat(chat.id)} aria-current={activeChatId === chat.id ? "page" : undefined} className={cn("h-12 min-w-0 justify-start gap-3 rounded-lg px-3 font-normal", activeChatId === chat.id && "bg-accent text-accent-foreground")}>
                   <MessageSquare className="shrink-0 text-muted-foreground" /><span className="truncate">{chat.title}</span>{chat.pinned && <Pin className="ml-auto shrink-0 text-muted-foreground" />}
                 </Button>
-                <div className="flex shrink-0 items-center opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
-                  <Button variant="ghost" size="icon" aria-label={`Rename ${chat.title}`} title="Rename chat" onClick={() => { setEditingId(chat.id); setEditValue(chat.title); }}><Pencil /></Button>
-                  <Button variant="ghost" size="icon" aria-label={`Delete ${chat.title}`} title="Delete chat" className="text-muted-foreground hover:text-destructive" onClick={() => deleteChat(chat.id)}><Trash2 /></Button>
-                </div>
+                <ChatItemMenu chatId={chat.id} title={chat.title} onRename={() => { setEditingId(chat.id); setEditValue(chat.title); }} />
               </>}
             </div>)}
           </nav>}
