@@ -72,9 +72,9 @@ export default function Projects() {
       {shown.map((project) => {
         const Icon = projectIcons.find((entry) => entry.value === project.icon)?.icon || FolderOpen;
         return <div key={project.id} className="flex items-center gap-2 py-1">
-          <Button variant="floating" type="button" aria-pressed={selected === project.id} onClick={() => setSelected(selected === project.id ? null : project.id)} className="h-auto min-h-16 min-w-0 flex-1 justify-start gap-3 rounded-full px-5 py-3 text-left aria-pressed:bg-accent">
-            <Icon className="size-5 text-muted-foreground" />
-            <span className="min-w-0"><span className="block truncate text-base font-medium text-foreground">{project.name}</span><span className="block text-sm text-muted-foreground">{friendlyDate(project.updated_at || project.created_at) || project.category || "General"}</span></span>
+          <Button variant="floating" type="button" aria-pressed={selected === project.id} onClick={() => setSelected(selected === project.id ? null : project.id)} className="h-auto min-h-14 min-w-0 flex-1 justify-start gap-3 rounded-full px-4 py-2 text-left aria-pressed:bg-accent">
+            <Icon className="size-4.5 shrink-0 text-muted-foreground" />
+            <span className="min-w-0"><span className="block truncate text-sm font-medium text-foreground">{project.name}</span><span className="block text-xs text-muted-foreground">{friendlyDate(project.updated_at || project.created_at) || project.category || "General"}</span></span>
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild><Button variant="floating" size="icon" className="size-11 shrink-0 rounded-full" aria-label={`Options for ${project.name}`}><MoreVertical /></Button></DropdownMenuTrigger>
