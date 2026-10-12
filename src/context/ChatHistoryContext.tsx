@@ -36,6 +36,7 @@ const ChatHistoryContext: import("react").Context<ChatHistoryContextType | null>
   ((globalThis as any)[CTX_KEY] ??= createContext<ChatHistoryContextType | null>(null));
 
 /* ── localStorage cache helpers ── */
+import { takePendingProject } from "@/lib/pending-project";
 const LS_SESSIONS_KEY = "sc_chat_sessions";
 const LS_MESSAGES_PREFIX = "sc_chat_msgs_";
 const LS_MAX_CACHED_CHATS = 50;
@@ -241,7 +242,9 @@ export const ChatHistoryProvider = ({ children }: { children: ReactNode }) => {
   const addChat = useCallback((title: string, preview: string, toolId?: string) => {
     // Create a temporary ID for immediate UI update
     const tempId = crypto.randomUUID();
+    const projectId = takePendingProject();
     const item: ChatHistoryItem = {
+      projectId,
       id: tempId,
       title,
       preview,
@@ -262,6 +265,7 @@ export const ChatHistoryProvider = ({ children }: { children: ReactNode }) => {
           title,
           preview,
           tool_id: toolId || null,
+          project_id: projectId,
         })
         .then(({ error }) => {
           if (error) console.error("Failed to save chat session:", error);

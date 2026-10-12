@@ -77,3 +77,7 @@ CREATE INDEX IF NOT EXISTS idx_runtime_user_status ON runtime_jobs(user_id, stat
 CREATE INDEX IF NOT EXISTS idx_runtime_session ON runtime_jobs(session_hash);
 ALTER TABLE runtime_jobs ADD COLUMN gh_checked_at TEXT;
 CREATE TABLE IF NOT EXISTS deep_executions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, request_id TEXT NOT NULL, conversation_id TEXT, state TEXT NOT NULL, overall TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, UNIQUE(user_id, request_id));
+
+ALTER TABLE workspace_projects ADD COLUMN pinned INTEGER DEFAULT 0;
+ALTER TABLE workspace_projects ADD COLUMN instructions TEXT;
+ALTER TABLE user_files ADD COLUMN project_id TEXT;
