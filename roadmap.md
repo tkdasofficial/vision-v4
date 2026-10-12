@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Separate project/default chats, preserve creation-time ordering on transfers, and show a centered 12-character project name with project-only menu and no Incognito.
 - [x] Empty chat screen shows only the app logo and the tagline "What can I help you with?"; suggestions, subtitle and pills removed. Test updated and signed-in browser check confirms nothing else between logo and message box.
 - [x] Refine Library, Plugins and Projects with floating controls and dynamic transparency; Projects centered title, back, plus and transforming top search without bottom search. Navigation tests and fixture browser checks pass; signed-in data operations remain unverified.
 - [x] Audit Settings subpages; fix Accessibility icon, distorted toggles with larger tap targets, missing hints/status text, clipped accent choices and password-code spacing. 16 tests pass; actual page layouts checked with local preference fixtures in light/dark, keyboard toggles and scroll fade verified. Signed-in saving remains unverified without a session.
