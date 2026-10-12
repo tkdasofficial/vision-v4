@@ -4,6 +4,7 @@ import { IncognitoIcon } from "@/components/icons/incognito-icon";
 import { useNavigate } from "@/lib/router-compat";
 import ChatActionsMenu from "@/components/chat-actions-menu";
 import ProjectChatHeader from "@/components/project-chat-header";
+import { takePendingProjectPrompt } from "@/lib/pending-project";
 import AnnouncementBanner from "@/components/announcement-banner";
 
 import type { AITool, ChatMessage as ChatMessageType, DeepStage, MessageAttachment, PastedBlock } from "@/lib/types";
@@ -542,9 +543,18 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
     ? chatTitle.length > 30 ? chatTitle.slice(0, 30) + "…" : chatTitle
     : defaultTitle;
 
+  const projectPromptSent = useRef(false);
+  useEffect(() => {
+    if (projectPromptSent.current || chatId || !draftProjectId) return;
+    const text = takePendingProjectPrompt(draftProjectId);
+    if (!text) return;
+    projectPromptSent.current = true;
+    void handleSend(text);
+  }, [draftProjectId, chatId, handleSend]);
+
   return (
     <div className="flex flex-col h-full flex-1 min-w-0">
-      {projectId ? <ProjectChatHeader projectId={projectId} onMenuClick={onMenuClick} /> : <header className="relative flex shrink-0 items-center gap-3 bg-transparent px-3 py-1.5 sm:px-4 sm:py-2">
+      {projectId ? <ProjectChatHeader projectId={projectId} /> : <header className="relative flex shrink-0 items-center gap-3 bg-transparent px-3 py-1.5 sm:px-4 sm:py-2">
         <Button variant="floating" size="icon" aria-label="Open app drawer" title="Open app drawer"
           onClick={onMenuClick}
           className="rounded-full text-foreground [&_svg]:size-[22px]"
