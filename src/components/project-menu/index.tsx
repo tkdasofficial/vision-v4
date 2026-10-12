@@ -1,0 +1,24 @@
+import { MessageSquarePlus, MoreVertical, Pencil, Pin, PinOff, ScrollText, Share2, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
+export type ProjectMenuActions = {
+  onNewChat: () => void; onTogglePin: () => void; onShare: () => void;
+  onEdit: () => void; onInstructions: () => void; onDelete: () => void;
+};
+
+/** Three-dot options for a project (list rows and the project page header). */
+export default function ProjectMenu({ name, pinned, actions }: { name: string; pinned: boolean; actions: ProjectMenuActions }) {
+  return <DropdownMenu>
+    <DropdownMenuTrigger asChild><Button variant="floating" size="icon" className="size-11 shrink-0 rounded-full" aria-label={`Options for ${name}`} title="Project options"><MoreVertical /></Button></DropdownMenuTrigger>
+    <DropdownMenuContent align="end" className="w-56 rounded-2xl p-1.5">
+      <DropdownMenuItem className="rounded-full" onSelect={actions.onNewChat}><MessageSquarePlus />New project chat</DropdownMenuItem>
+      <DropdownMenuItem className="rounded-full" onSelect={actions.onTogglePin}>{pinned ? <><PinOff />Unpin project</> : <><Pin />Pin project</>}</DropdownMenuItem>
+      <DropdownMenuItem className="rounded-full" onSelect={actions.onShare}><Share2 />Share project</DropdownMenuItem>
+      <DropdownMenuItem className="rounded-full" onSelect={actions.onEdit}><Pencil />Edit project</DropdownMenuItem>
+      <DropdownMenuItem className="rounded-full" onSelect={actions.onInstructions}><ScrollText />Edit instructions</DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem className="rounded-full text-destructive focus:text-destructive" onSelect={actions.onDelete}><Trash2 />Delete</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>;
+}
