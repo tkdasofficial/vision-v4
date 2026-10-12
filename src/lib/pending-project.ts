@@ -18,3 +18,19 @@ export function sortProjects<T extends { pinned?: boolean | number | null; updat
   const stamp = (p: T) => p.updated_at || p.created_at || "";
   return [...list].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || stamp(b).localeCompare(stamp(a)));
 }
+
+const PROMPT_KEY = "vision_pending_project_prompt";
+/** A message typed on a project's page, sent once that project's new chat opens. */
+export function setPendingProjectPrompt(projectId: string, text: string) {
+  try { sessionStorage.setItem(PROMPT_KEY, JSON.stringify({ projectId, text })); } catch { /* storage unavailable */ }
+}
+export function takePendingProjectPrompt(projectId: string): string | null {
+  try {
+    const raw = sessionStorage.getItem(PROMPT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { projectId?: string; text?: string };
+    if (parsed.projectId !== projectId || !parsed.text) return null;
+    sessionStorage.removeItem(PROMPT_KEY);
+    return parsed.text;
+  } catch { return null; }
+}
