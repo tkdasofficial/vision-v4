@@ -581,7 +581,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
             {isTyping && <TypingIndicator phase={thinkingPhase} />}
           </div>
         ) : (
-          <EmptyState tool={tool} onPromptClick={(prompt) => handleSend(prompt)} />
+          <EmptyState tool={tool} />
         )}
       </div>
 
