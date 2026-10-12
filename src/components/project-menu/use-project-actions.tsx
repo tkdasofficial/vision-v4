@@ -4,7 +4,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useChatHistory } from "@/context/ChatHistoryContext";
 import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/lib/cloud/client";
-import { setPendingProject } from "@/lib/pending-project";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +27,7 @@ export function useProjectActions(onChange: () => void, onDeleted?: () => void) 
   };
 
   const actionsFor = (project: ProjectRow): ProjectMenuActions => ({
-    onNewChat: () => { setPendingProject(project.id); navigate("/chat"); },
+    onNewChat: () => navigate(`/chat?project=${encodeURIComponent(project.id)}`),
     onTogglePin: () => void update(project.id, { pinned: !project.pinned }),
     onShare: async () => {
       const url = `${window.location.origin}/projects/${project.id}`;

@@ -1,5 +1,20 @@
-/** Chats shown under "Recent": project chats live only in their project; pinned chats come first. */
-export function recentChats<T extends { projectId?: string | null; pinned?: boolean }>(chats: T[]): T[] {
-  const loose = chats.filter((c) => !c.projectId);
-  return [...loose.filter((c) => c.pinned), ...loose.filter((c) => !c.pinned)];
+type ChatPlacement = { projectId?: string | null; pinned?: boolean; createdAt?: number };
+
+/** Moving between workspaces never changes a chat's original chronological position. */
+function orderedChats<T extends ChatPlacement>(chats: T[]): T[] {
+  return [...chats].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || (b.createdAt ?? 0) - (a.createdAt ?? 0));
+}
+
+/** Chats shown under Recent belong to no project. */
+export function recentChats<T extends ChatPlacement>(chats: T[]): T[] {
+  return orderedChats(chats.filter((c) => !c.projectId));
+}
+
+export function projectChats<T extends ChatPlacement>(chats: T[], projectId: string): T[] {
+  return orderedChats(chats.filter((c) => c.projectId === projectId));
+}
+
+export function projectChatTitle(name: string): string {
+  const characters = Array.from(name);
+  return characters.length > 12 ? characters.slice(0, 12).join("") + "..." : name;
 }

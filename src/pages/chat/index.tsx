@@ -9,6 +9,10 @@ import ChatWorkspace from "@/components/chat-workspace";
 const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
   // Read from the address: this screen stays mounted across /chat, /chat/<id> and /chat/incognito.
   const pathname = useRouterState({ select: (st) => st.location.pathname });
+  const draftProject = useRouterState({ select: (st) => {
+    const search = st.location.search as Record<string, unknown>;
+    return typeof search.project === "string" ? search.project : undefined;
+  } });
   const seg = pathname.match(/^\/chat\/([^/]+)\/?$/)?.[1];
   const urlChatId = seg && seg !== "incognito" ? decodeURIComponent(seg) : undefined;
   const base = "/chat";
@@ -25,6 +29,11 @@ const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
   const [opening, setOpening] = useState(false);
   const wanted = useRef<string | undefined>(undefined);
   const justCreated = useRef<string | undefined>(undefined);
+
+  // Reset only when switching empty drafts, never on draft → saved chat navigation.
+  useEffect(() => {
+    if (!urlChatId) setChatKey((k) => k + 1);
+  }, [draftProject]);
 
   // The address is the source of truth: direct links, refresh, new tabs and Back/Forward all open exactly that chat.
   const openFromUrl = useCallback((id: string) => {
@@ -106,6 +115,7 @@ const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
           onMenuClick={() => navigate(`/drawer?returnTo=${encodeURIComponent(pathname)}`)}
           initialMessages={initialMessages && initialMessages.length > 0 ? initialMessages : undefined}
           chatId={activeChatId}
+          projectId={!urlChatId && !isIncognito ? draftProject : undefined}
           onChatCreated={handleChatCreated}
         />}
       </main>

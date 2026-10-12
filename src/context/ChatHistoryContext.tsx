@@ -19,7 +19,7 @@ export type ChatHistoryItem = {
 type ChatHistoryContextType = {
   history: ChatHistoryItem[];
   loading: boolean;
-  addChat: (title: string, preview: string, toolId?: string) => string;
+  addChat: (title: string, preview: string, toolId?: string, projectId?: string | null) => string;
   renameChat: (id: string, newTitle: string) => void;
   deleteChat: (id: string) => void;
   searchHistory: (query: string) => ChatHistoryItem[];
@@ -36,7 +36,6 @@ const ChatHistoryContext: import("react").Context<ChatHistoryContextType | null>
   ((globalThis as any)[CTX_KEY] ??= createContext<ChatHistoryContextType | null>(null));
 
 /* ── localStorage cache helpers ── */
-import { takePendingProject } from "@/lib/pending-project";
 const LS_SESSIONS_KEY = "sc_chat_sessions";
 const LS_MESSAGES_PREFIX = "sc_chat_msgs_";
 const LS_MAX_CACHED_CHATS = 50;
@@ -239,10 +238,9 @@ export const ChatHistoryProvider = ({ children }: { children: ReactNode }) => {
     return msgs;
   }, []);
 
-  const addChat = useCallback((title: string, preview: string, toolId?: string) => {
+  const addChat = useCallback((title: string, preview: string, toolId?: string, projectId: string | null = null) => {
     // Create a temporary ID for immediate UI update
     const tempId = crypto.randomUUID();
-    const projectId = takePendingProject();
     const item: ChatHistoryItem = {
       projectId,
       id: tempId,
