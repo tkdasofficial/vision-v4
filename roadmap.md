@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Empty chat screen shows only the app logo and the tagline "What can I help you with?"; suggestions, subtitle and pills removed. Test updated and signed-in browser check confirms nothing else between logo and message box.
 - [x] Refine Library, Plugins and Projects with floating controls and dynamic transparency; Projects centered title, back, plus and transforming top search without bottom search. Navigation tests and fixture browser checks pass; signed-in data operations remain unverified.
 - [x] Audit Settings subpages; fix Accessibility icon, distorted toggles with larger tap targets, missing hints/status text, clipped accent choices and password-code spacing. 16 tests pass; actual page layouts checked with local preference fixtures in light/dark, keyboard toggles and scroll fade verified. Signed-in saving remains unverified without a session.
 - [x] Fix Settings back to AppDrawer and every Settings subpage back to main Settings; 13 settings tests pass and browser fixture verifies About → Settings → AppDrawer. Signed-in hosted flow remains unverified.
