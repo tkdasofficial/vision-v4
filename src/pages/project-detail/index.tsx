@@ -10,7 +10,7 @@ import ProjectMenu from "@/components/project-menu";
 import ChatItemMenu from "@/components/chat-item-menu";
 import { useProjectActions, type ProjectRow } from "@/components/project-menu/use-project-actions";
 import { Button } from "@/components/ui/button";
-import { recentChats } from "@/lib/recent-chats";
+import { projectChats } from "@/lib/recent-chats";
 import { cn } from "@/lib/utils";
 
 type Source = { id: string; name: string; mime: string; kind: string; size: number; url: string; created_at: string };
@@ -73,7 +73,7 @@ export default function ProjectDetail({ projectId }: { projectId: string }) {
   const confirmRename = () => { if (editingId && editValue.trim()) renameChat(editingId, editValue.trim()); setEditingId(null); };
 
   const q = query.trim().toLowerCase();
-  const chats = recentChats(history.map((c) => ({ ...c, projectId: c.projectId === projectId ? null : c.projectId || "other" }))).filter((c) => c.title.toLowerCase().includes(q));
+  const chats = projectChats(history, projectId).filter((c) => c.title.toLowerCase().includes(q));
   const shownSources = (sources || []).filter((s) => s.name.toLowerCase().includes(q));
 
   if (missing) return <FloatingWorkspacePage title="Project" query={query} onQueryChange={setQuery} backTo="/projects"><div className="py-20 text-center text-muted-foreground"><FolderOpen className="mx-auto mb-4 size-8" /><p>Project not found</p></div></FloatingWorkspacePage>;

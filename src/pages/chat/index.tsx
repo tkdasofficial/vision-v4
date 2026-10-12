@@ -9,6 +9,10 @@ import ChatWorkspace from "@/components/chat-workspace";
 const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
   // Read from the address: this screen stays mounted across /chat, /chat/<id> and /chat/incognito.
   const pathname = useRouterState({ select: (st) => st.location.pathname });
+  const draftProject = useRouterState({ select: (st) => {
+    const search = st.location.search as Record<string, unknown>;
+    return typeof search.project === "string" ? search.project : undefined;
+  } });
   const seg = pathname.match(/^\/chat\/([^/]+)\/?$/)?.[1];
   const urlChatId = seg && seg !== "incognito" ? decodeURIComponent(seg) : undefined;
   const base = "/chat";
@@ -99,13 +103,14 @@ const Index = ({ isIncognito = false }: { isIncognito?: boolean }) => {
             </>}
           </div>
         ) : <ChatWorkspace
-          key={`${isIncognito}-${chatKey}`}
+          key={`${isIncognito}-${chatKey}-${urlChatId ? "saved" : draftProject || "default"}`}
           tool={selectedTool}
           isIncognito={isIncognito}
           onIncognitoChat={handleIncognitoChat}
           onMenuClick={() => navigate(`/drawer?returnTo=${encodeURIComponent(pathname)}`)}
           initialMessages={initialMessages && initialMessages.length > 0 ? initialMessages : undefined}
           chatId={activeChatId}
+          projectId={!urlChatId && !isIncognito ? draftProject : undefined}
           onChatCreated={handleChatCreated}
         />}
       </main>

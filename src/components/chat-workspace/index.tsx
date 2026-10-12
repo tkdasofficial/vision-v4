@@ -3,6 +3,7 @@ import { Crown, Menu } from "lucide-react";
 import { IncognitoIcon } from "@/components/icons/incognito-icon";
 import { useNavigate } from "@/lib/router-compat";
 import ChatActionsMenu from "@/components/chat-actions-menu";
+import ProjectChatHeader from "@/components/project-chat-header";
 import AnnouncementBanner from "@/components/announcement-banner";
 
 import type { AITool, ChatMessage as ChatMessageType, DeepStage, MessageAttachment, PastedBlock } from "@/lib/types";
@@ -30,6 +31,7 @@ type Props = {
   onMenuClick: () => void;
   initialMessages?: ChatMessageType[];
   chatId?: string;
+  projectId?: string;
   onChatCreated?: (id: string) => void;
   isIncognito?: boolean;
   onIncognitoChat: () => void;
@@ -38,7 +40,7 @@ type Props = {
 // Deep Thinking Mode status card cycles through these while the answer is prepared.
 const DEEP_STAGES = ["thinking", "analyzing", "researching", "working", "crafting"] as const;
 
-const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalChatId, onChatCreated, isIncognito = false, onIncognitoChat }: Props) => {
+const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalChatId, projectId: draftProjectId, onChatCreated, isIncognito = false, onIncognitoChat }: Props) => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessageType[]>(initialMessages || []);
   const [isTyping, setIsTyping] = useState(false);
@@ -69,7 +71,8 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
     if (!isIncognito) saveChatMode(browserStore(), chatId, m);
   }, [chatId, isIncognito]);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { addChat, updateChatMessages } = useChatHistory();
+  const { addChat, updateChatMessages, getChatById } = useChatHistory();
+  const projectId = chatId ? getChatById(chatId)?.projectId : draftProjectId;
   const { tasks: bgTasks, activeTasks, dispatch: dispatchBgTask } = useBackgroundTasks(chatId);
   const { user } = useAuth();
   const [newMessageIds, setNewMessageIds] = useState<Set<string>>(new Set());
@@ -290,7 +293,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
     if (!chatId) {
       const rawTitle = content.length > 100 ? content.slice(0, 100) : content;
       const title = rawTitle.length > 40 ? rawTitle.slice(0, 40) + "..." : rawTitle;
-      const newId = addChat(title, content, tool?.id);
+      const newId = addChat(title, content, tool?.id, draftProjectId);
       if (!isIncognito) adoptDraftMode(browserStore(), newId, taskMode ?? mode);
       sessionId = newId;
       setChatId(newId);
@@ -430,7 +433,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       clearTimeout(phaseTimer);
       setIsTyping(false);
     }
-  }, [tool, chatId, addChat, messages, updateChatMessages, isIncognito, mode]);
+  }, [tool, chatId, addChat, messages, updateChatMessages, isIncognito, mode, draftProjectId]);
 
   /** Attached documents/data/audio plus an instruction → one backend agent task in this chat. */
   const handleSendFiles = useCallback(async (content: string, files: File[], extras?: { typed: string; pasted: PastedBlock[] }) => {
@@ -443,12 +446,12 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
     let sid: string | null = isIncognito ? null : chatId;
     if (!isIncognito && !chatId) {
       const title = content.slice(0, 60) || files[0].name;
-      sid = addChat(title, content.slice(0, 120), tool?.id);
+      sid = addChat(title, content.slice(0, 120), tool?.id, draftProjectId);
       adoptDraftMode(browserStore(), sid, mode);
       setChatId(sid); setChatTitle(title); onChatCreated?.(sid);
     }
     await runInlineJob("agent_task", { prompt: content }, sid, files);
-  }, [chatId, addChat, tool, isIncognito, runInlineJob, mode]);
+  }, [chatId, addChat, tool, isIncognito, runInlineJob, mode, draftProjectId]);
 
   const handleZipUpload = useCallback(async (file: File) => {
     const userMsg: ChatMessageType = {
@@ -466,7 +469,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
     let zipSession: string | null = isIncognito ? null : chatId;
     if (!isIncognito && !chatId) {
       const title = `ZIP: ${file.name}`;
-      const newId = addChat(title, `Uploaded ${file.name}`, tool?.id);
+      const newId = addChat(title, `Uploaded ${file.name}`, tool?.id, draftProjectId);
       adoptDraftMode(browserStore(), newId, mode);
       zipSession = newId;
       setChatId(newId);
@@ -490,7 +493,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       setMessages((prev) => [...prev.filter((m) => m.id !== msgId), { id: msgId, role: "assistant", content: `Couldn't analyze the ZIP: ${e.message}`, timestamp: new Date() }]);
     }
     setIsTyping(false);
-  }, [chatId, addChat, tool, isIncognito, mode]);
+  }, [chatId, addChat, tool, isIncognito, mode, draftProjectId]);
 
   const handleFileConvert = useCallback((file: File) => {
     const cat = getCategory(file);
@@ -508,7 +511,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
 
     if (!isIncognito && !chatId) {
       const title = `Convert: ${file.name}`;
-      const newId = addChat(title, `Convert ${file.name}`, tool?.id);
+      const newId = addChat(title, `Convert ${file.name}`, tool?.id, draftProjectId);
       adoptDraftMode(browserStore(), newId, mode);
       setChatId(newId);
       setChatTitle(title);
@@ -522,7 +525,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
       timestamp: new Date(),
       convertFile: file,
     }]);
-  }, [chatId, addChat, tool, isIncognito, mode]);
+  }, [chatId, addChat, tool, isIncognito, mode, draftProjectId]);
 
   function formatBytes(bytes: number): string {
     if (bytes === 0) return "0 B";
@@ -541,7 +544,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
 
   return (
     <div className="flex flex-col h-full flex-1 min-w-0">
-      <header className="relative flex shrink-0 items-center gap-3 bg-transparent px-3 py-1.5 sm:px-4 sm:py-2">
+      {projectId ? <ProjectChatHeader projectId={projectId} onMenuClick={onMenuClick} /> : <header className="relative flex shrink-0 items-center gap-3 bg-transparent px-3 py-1.5 sm:px-4 sm:py-2">
         <Button variant="floating" size="icon" aria-label="Open app drawer" title="Open app drawer"
           onClick={onMenuClick}
           className="rounded-full text-foreground [&_svg]:size-[22px]"
@@ -558,7 +561,7 @@ const ChatWorkspace = ({ tool, onMenuClick, initialMessages, chatId: externalCha
           <IncognitoIcon />
         </Button>
         )}
-      </header>
+      </header>}
 
       <AnnouncementBanner />
       {isIncognito && (
