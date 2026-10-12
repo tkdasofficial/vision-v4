@@ -43,22 +43,22 @@ export default function ChatItemMenu({ chatId, title, onRename, inProject = fals
     <DropdownMenuTrigger asChild>
       <Button variant="ghost" size="icon" className={className ?? "size-10 shrink-0 rounded-full"} aria-label={`Options for ${title}`} title="Chat options"><MoreVertical /></Button>
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" className="w-52 rounded-2xl p-1.5">
-      <DropdownMenuItem className="rounded-full" onSelect={() => togglePin(chatId)}>{chat?.pinned ? <><PinOff />Unpin</> : <><Pin />Pin</>}</DropdownMenuItem>
-      <DropdownMenuItem className="rounded-full" onSelect={onRename}><Pencil />Rename</DropdownMenuItem>
-      {inProject ? <DropdownMenuItem className="rounded-full" onSelect={() => void move(null, "Removed from project")}><FolderMinus />Remove from project</DropdownMenuItem> : <DropdownMenuSub>
-        <DropdownMenuSubTrigger className="rounded-full"><FolderPlus className="mr-2 size-4" />Add to project</DropdownMenuSubTrigger>
-        <DropdownMenuSubContent className="max-h-72 w-52 overflow-y-auto rounded-2xl p-1.5">
+    <DropdownMenuContent align="end" className="w-56 rounded-3xl border-border/60 bg-popover/95 p-2 shadow-xl backdrop-blur-xl">
+      <DropdownMenuItem className={menuItemClass} onSelect={() => togglePin(chatId)}>{chat?.pinned ? <><PinOff />Unpin</> : <><Pin />Pin</>}</DropdownMenuItem>
+      <DropdownMenuItem className={menuItemClass} onSelect={onRename}><Pencil />Rename</DropdownMenuItem>
+      {inProject ? <DropdownMenuItem className={menuItemClass} onSelect={() => void move(null, "Removed from project")}><FolderMinus />Remove from project</DropdownMenuItem> : <DropdownMenuSub>
+        <DropdownMenuSubTrigger className={menuItemClass}><FolderPlus />Add to project</DropdownMenuSubTrigger>
+        <DropdownMenuSubContent className="max-h-72 w-56 overflow-y-auto rounded-3xl border-border/60 bg-popover/95 p-2 shadow-xl backdrop-blur-xl">
           {projects.map((project) => {
             const Icon = projectIcons.find((e) => e.value === project.icon)?.icon || FolderOpen;
-            return <DropdownMenuItem key={project.id} className="rounded-full" onSelect={() => void move(project.id, `Moved to ${project.name}`)}><Icon /><span className="truncate">{project.name}</span></DropdownMenuItem>;
+            return <DropdownMenuItem key={project.id} className={menuItemClass} onSelect={() => void move(project.id, `Moved to ${project.name}`)}><Icon /><span className="truncate">{project.name}</span></DropdownMenuItem>;
           })}
-          {projects.length > 0 && <DropdownMenuSeparator />}
-          <DropdownMenuItem className="rounded-full" onSelect={() => navigate(`/projects/new?chat=${chatId}`)}><Plus />Create new</DropdownMenuItem>
+          {projects.length > 0 && <DropdownMenuSeparator className="mx-3 my-1.5" />}
+          <DropdownMenuItem className={menuItemClass} onSelect={() => navigate(`/projects/new?chat=${chatId}`)}><Plus />Create new</DropdownMenuItem>
         </DropdownMenuSubContent>
       </DropdownMenuSub>}
-      <DropdownMenuSeparator />
-      <DropdownMenuItem className="rounded-full text-destructive focus:text-destructive" onSelect={remove}><Trash2 />Delete</DropdownMenuItem>
+      <DropdownMenuSeparator className="mx-3 my-1.5" />
+      <DropdownMenuItem className={`${menuItemClass} text-destructive focus:text-destructive [&_svg]:text-destructive`} onSelect={remove}><Trash2 />Delete</DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>;
 }
